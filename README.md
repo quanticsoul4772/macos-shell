@@ -1,87 +1,8 @@
 # macOS Shell MCP Server
 
-A Model Context Protocol (MCP) server that enables AI assistants (like Claude) to execute shell commands on macOS with session management, working directory persistence, environment isolation, and background process management.
+A Model Context Protocol (MCP) server that enables AI assistants to execute shell commands on macOS with session management, working directory persistence, environment isolation, and background process management.
 
-**Version**: 3.2.0  
-**Status**: Production Ready with AI-Optimized Memory Usage
-
-## Current Implementation Status
-
-### What's Working (v3.2.0)
-- **AI-Optimized Memory Usage** (NEW in v3.2.0)
-  - Reduced buffer sizes from 10,000 to 300 lines
-  - 97% memory reduction (1.6MB to 48KB per session)
-  - AI_BUFFER_SIZE constant for consistent configuration
-  - Optimized for AI usage patterns (immediate processing, no scrollback needed)
-
-### What's Working (v3.2.0)
-- **Cache System** (NEW in v3.2.0)
-  - 5 cache management MCP tools
-  - 4-phase caching system
-  - Prevents stale data while improving performance
-  - See [Cache System](docs/features/CACHE_SYSTEM.md)
-- All 35 tools implemented and tested (30 original + 5 cache management)
-- Session management with environment isolation
-- Command history tracking
-- Error handling and timeout management
-- **Process Resource Monitoring** (NEW in v3.1.0)
-  - CPU and memory tracking for background processes
-  - 5-second sampling intervals
-  - Batched ps execution for overhead reduction
-  - Circuit breaker pattern for error handling
-  - Implementation focused on AI usage
-- **Background process management** (NEW in v2.1.0)
-  - Start processes in background with detached mode
-  - List running/completed background processes
-  - Capture stdout/stderr output with line-by-line buffering
-  - Kill processes with SIGTERM/SIGKILL support
-  - CircularBuffer for output storage (300 lines with memory-safe waiter management)
-- **Output streaming** (NEW in v2.2.0)
-  - stream_process_output tool for output access
-  - Long-polling mechanism waits for new lines
-  - Configurable timeout and line limits
-  - Maintains read position for continuous streaming
-- **Session persistence** (NEW in v2.3.0)
-  - Sessions saved to disk and restored on server restart
-  - Working directories and environment variables preserved
-  - Command history maintained (last 100 commands)
-  - Background process metadata restored (marked as terminated)
-  - Persistence directory: `~/.macos-shell`
-- **Orphan process handling** (NEW in v2.4.0)
-  - Detects processes running from previous server sessions
-  - `cleanup_orphans` tool for managing orphaned processes
-  - `kill_process` works on orphaned processes
-  - Warnings in `list_processes` for orphaned processes
-- **Tool naming conflict resolution** (NEW in v2.5.0)
-  - Renamed `create_session` → `create_shell_session`
-  - Renamed `list_sessions` → `list_shell_sessions`
-  - Prevents conflicts with other MCP servers
-- **Bash command parsing fix** (NEW in v2.5.1)
-  - Fixed bug where `bash -c` commands caused server crashes
-  - Handling for bash commands prevents double shell interpretation
-  - Bash scripts execute reliably
-- **Process termination handling fix** (NEW in v2.5.2)
-  - Fixed bug where killing background processes crashed the server
-  - Error handling for SIGTERM/SIGKILL signals
-  - Server remains stable when processes are terminated
-- **Search functionality in process output** (NEW in v2.4.0)
-  - Search process output with case-sensitive/insensitive options
-  - Shows match counts and filters output to matching lines
-- **Visual indicator alignment fix** (NEW in v2.6.0)
-  - Fixed misaligned >>> markers when using inverted search with context
-  - Visual indicators show on lines that match the search pattern
-  - Clarity when using show_context with invert_match options
-- **Regex search bug fix** (NEW in v2.6.0)
-  - Fixed bug where regex searches with 'g' flag only matched every other line
-  - Removed global flag from regex creation to prevent stateful regex.test() behavior
-  - All matching lines are found in regex searches
-- **AI-Specific Performance Optimizations** (NEW in v3.0.0)
-  - Command caching with performance improvement for repeated commands
-  - Deduplication prevents redundant executions
-  - Error recovery with automatic success rate
-  - Pattern recognition learns command sequences
-  - Pre-caching of predicted next commands
-  - Performance monitoring
+**Version**: 3.2.0
 
 ## Features
 
@@ -94,14 +15,14 @@ A Model Context Protocol (MCP) server that enables AI assistants (like Claude) t
 - **Background Processes**: Run processes in the background with output capture
 - **Error Handling**: Error reporting with exit codes
 
-### AI-Specific Optimizations (v3.0.0)
+### AI-Specific Features
 
 This server is designed for AI usage patterns:
 
-#### Command Caching (v3.1.1)
-- **Performance improvement** for cacheable commands (120ms → 1ms)
-- **Classification**: Status commands (`git status`, `ls`, `docker ps`) are NEVER cached
-- **Variable TTLs**: 
+#### Command Caching
+- Cacheable commands execute in 1ms vs 120ms uncached
+- Classification: Status commands (`git status`, `ls`, `docker ps`) are never cached
+- Variable TTLs: 
   - Never: Status/monitoring commands
   - 30s: Directory context (`pwd`, `whoami`)
   - 5m: Config files (`cat package.json`)
@@ -111,13 +32,11 @@ This server is designed for AI usage patterns:
 - Disable caching: Set `MCP_DISABLE_CACHE=true` environment variable
 
 #### Deduplication
-- **Reduction** in redundant command executions
 - 10-second deduplication window for identical commands
 - Batches multiple executions into single operation
 - Normalizes command variations (`ls -la` = `ls -al`)
 
 #### Error Recovery
-- **Automatic recovery** from transient failures
 - Auto-corrects file path typos using Levenshtein distance
 - Retries network errors with exponential backoff
 - Adds flags like `--legacy-peer-deps` for npm errors
@@ -127,14 +46,13 @@ This server is designed for AI usage patterns:
 - Stats logged every minute to stderr
 - Tracks cache hit rate, deduplication rate, error recovery
 - Shows command patterns for optimization insights
-- Zero configuration - detects AI client
 
-## SSH Best Practices
+## SSH Implementation
 
 ### Performance Comparison
-- **New SSH connection**: ~2 seconds (DNS lookup + authentication overhead)
-- **Existing session**: 0.000s
-- **Sessions persist**: Reuse across multiple tool calls
+- New SSH connection: ~2 seconds (DNS lookup + authentication overhead)
+- Existing session: 0.000s
+- Sessions persist across multiple tool calls
 
 ### SSH Workflow
 ```bash
@@ -157,14 +75,14 @@ if (sessions.find(s => s.host === 'myserver.com')) {
 ```
 
 ### Common Mistakes to Avoid
-- ❌ Creating new SSH connections for each command
-- ❌ Using `run_command` with sshpass for multiple commands
-- ❌ Forgetting to check `ssh_interactive_list` first
-- ✅ Check existing sessions before creating new ones
-- ✅ Reuse session IDs for command execution
-- ✅ Use interactive sessions for servers requiring multiple commands
+- Creating new SSH connections for each command
+- Using `run_command` with sshpass for multiple commands
+- Forgetting to check `ssh_interactive_list` first
+- Check existing sessions before creating new ones
+- Reuse session IDs for command execution
+- Use interactive sessions for servers requiring multiple commands
 
-## Quick Start (For AI Assistants)
+## Installation
 
 ```bash
 # Clone the repository
@@ -216,10 +134,10 @@ Restart Claude Desktop after adding the configuration.
   - Parameters: `script`, `session?`, `timeout?`
   - Returns: Exit code, stdout, stderr
 
-- **`batch_execute_enhanced`** - Execute commands with conditional logic and retries (NEW in v2.8.0)
+- **`batch_execute_enhanced`** - Execute commands with conditional logic and retries
   - Parameters: `commands[]` with conditions, `parallel?`, `stopOnFirstFailure?`, `maxOutputLines?`, `includeFullOutput?`
   - Returns: Execution results with skip reasons
-  - **NEW in v3.1.0**: Output truncation to prevent context window overload:
+  - Output truncation to prevent context window overload:
     - `maxOutputLines` (default: 50) - Limits stdout/stderr lines per command
     - `includeFullOutput` (default: false) - Override to get full output
     - Shows first/last lines with "... [X lines omitted] ..." in the middle
@@ -229,12 +147,10 @@ Restart Claude Desktop after adding the configuration.
 - **`create_shell_session`** - Create a new named session with isolated environment
   - Parameters: `name`, `cwd?`, `env?`
   - Returns: Session ID and working directory
-  - **Note**: Renamed from `create_session` in v2.5.0
   
 - **`list_shell_sessions`** - List active sessions with details
   - Parameters: None
   - Returns: List of sessions with creation time, last used, command count, background process count
-  - **Note**: Renamed from `list_sessions` in v2.5.0
   
 - **`close_session`** - Close a session and free resources
   - Parameters: `session`
@@ -263,22 +179,20 @@ Restart Claude Desktop after adding the configuration.
   - Parameters: `session?`, `limit?`
   - Returns: Commands with timestamps, exit codes, duration
 
-### 6. Background Process Management (NEW in v2.1.0)
+### 6. Background Process Management
 - **`run_background`** - Start a command in the background
   - Parameters: `command`, `args[]`, `session?`, `name?`
   - Returns: Process ID, PID, status
   
-- **`list_processes`** - List background processes with resource monitoring (v3.1.0)
+- **`list_processes`** - List background processes with resource monitoring
   - Parameters: `session?` (optional filter)
   - Returns: JSON with processes including CPU%, memory, trends, and runtime
-  - **NEW in v3.1.0**: Includes resource monitoring data
   
 - **`get_process_output`** - Retrieve output from a background process with search
   - Parameters: `process_id`, `lines?`, `from_line?`, `search?`, `case_sensitive?`
   - Returns: Buffered stdout/stderr with line numbers and type indicators
-  - **NEW**: Search functionality with match counting
   
-- **`stream_process_output`** - Stream output from a background process (NEW in v2.2.0)
+- **`stream_process_output`** - Stream output from a background process
   - Parameters: `process_id`, `after_line?`, `timeout?`, `max_lines?`
   - Returns: New output lines as they arrive, with streaming hints
   - Waits up to timeout (default 30s) for new output
@@ -289,7 +203,7 @@ Restart Claude Desktop after adding the configuration.
   - Returns: Success confirmation
   - Works on orphaned processes from previous server sessions
   
-- **`cleanup_orphans`** - Manage processes from previous server sessions (NEW in v2.4.0)
+- **`cleanup_orphans`** - Manage processes from previous server sessions
   - Parameters: `mode?` (list/kill/interactive), `force?` (use SIGKILL)
   - Returns: List of orphans or cleanup results
   - Interactive mode provides suggestions for handling orphans
@@ -307,7 +221,7 @@ Restart Claude Desktop after adding the configuration.
   - Parameters: `session?`
   - Returns: System metrics including memory, CPU, disk, and resource usage
 
-### 8. AI Optimization Tools (NEW in v2.8.0)
+### 8. AI Optimization Tools
 - **`preflight_check`** - Validate multiple conditions before operations
   - Parameters: `commands[]`, `paths[]`, `ports[]`, `env_vars[]`, `session?`
   - Returns: Validation results with summary
@@ -318,7 +232,7 @@ Restart Claude Desktop after adding the configuration.
   - Returns: Structured system information
   - Replaces multiple discovery commands with single call
 
-### 9. Interactive SSH Tools (NEW in v3.0.0)
+### 9. Interactive SSH Tools
 - **`ssh_interactive_start`** - Start an SSH session
   - Parameters: `host`, `port?`, `user?`, `options[]?`, `key_file?`
   - Returns: Session ID and initial output (ANSI codes stripped)
@@ -358,7 +272,7 @@ Restart Claude Desktop after adding the configuration.
   - Parameters: None
   - Returns: List of sessions with host, status, runtime, and output line count
 
-### 10. Cache Management Tools (NEW in v3.2.0)
+### 10. Cache Management Tools
 - **`cache_stats`** - Get cache statistics
   - Parameters: None
   - Returns: Cache size, hit rate, strategy breakdown, learned rules
@@ -396,7 +310,7 @@ The v3.0.0 optimizations exploit these patterns for performance improvements wit
 
 For detailed information about AI features, see [AI_FEATURES.md](docs/features/AI_FEATURES.md).
 
-## Usage Examples (From an AI Assistant's Perspective)
+## Usage Examples
 
 These examples show how I (as an AI assistant) use the tools:
 
@@ -415,7 +329,7 @@ await run_command({
   timeout: 120000  // 2 minutes
 });
 
-// Bash -c commands work (fixed in v2.5.1)
+// Bash -c commands work
 await run_command({
   command: "bash",
   args: ["-c", "for i in {1..5}; do echo \"Line $i\"; done"]
@@ -447,7 +361,7 @@ await get_process_output({
 // [2] [OUT] Listening on http://localhost:3000
 // [3] [ERR] Warning: some deprecation notice
 
-// Search output for content (NEW)
+// Search output for content
 await get_process_output({
   process_id: "abc123...",
   search: "error",
@@ -494,9 +408,9 @@ await cleanup_orphans();
 // 3. Kill specific process: kill_process(process_id: "<id>") for each process listed
 ```
 
-### Session Management (Updated Tool Names)
+### Session Management
 ```typescript
-// Create a development session (NEW TOOL NAME)
+// Create a development session
 await create_shell_session({
   name: "dev",
   cwd: "/Users/me/projects/myapp",
@@ -506,7 +420,7 @@ await create_shell_session({
   }
 });
 
-// List sessions (NEW TOOL NAME)
+// List sessions
 await list_shell_sessions();
 // Returns session information
 
@@ -528,7 +442,7 @@ await pwd({ session: "dev" });
 // Returns: /Users/me/projects/myapp/src
 ```
 
-### Bash Commands (Fixed in v2.5.1)
+### Bash Commands
 ```typescript
 // These commands work without crashing the server
 
@@ -597,9 +511,7 @@ await history({
 });
 ```
 
-## Advanced Usage
-
-### Multiple Background Processes
+## Multiple Background Processes
 ```typescript
 // Start multiple servers
 await run_background({
@@ -741,7 +653,7 @@ await run_command({
 });
 ```
 
-### SSH Sessions (Performance Optimized)
+### SSH Sessions
 ```typescript
 // Check for existing sessions
 const existingSessions = await ssh_interactive_list();
@@ -837,7 +749,7 @@ await ssh_interactive_close({
 });
 ```
 
-## Best Practices for AI Assistants
+## Guidelines for AI Assistants
 
 1. **Use Named Sessions**: I create descriptive session names for different contexts
 2. **Set Environment Variables**: I use session-specific environment variables instead of modifying global environment
@@ -848,7 +760,7 @@ await ssh_interactive_close({
 7. **Kill Hanging Processes**: I use kill_process to clean up stuck processes
 8. **Handle Orphans**: I use cleanup_orphans after server restarts to manage orphaned processes
 9. **Use Correct Tool Names**: Use `create_shell_session` and `list_shell_sessions` (not the old names)
-10. **SSH Best Practices**:
+10. **SSH Guidelines**:
     - Run `ssh_interactive_list()` before creating new SSH connections
     - Reuse existing sessions for 0.000s command execution
     - Create new connections when necessary (2s overhead)
@@ -884,9 +796,9 @@ await ssh_interactive_close({
 
 ### Background Process Implementation
 - Processes run with `detached: true` using execa
-- Output captured line-by-line to **CircularBuffer** (v3.0.0)
+- Output captured line-by-line to **CircularBuffer**
 - **CircularBuffer** features:
-  - Stores last 300 lines per process (AI-optimized)
+  - Stores last 300 lines per process
   - Memory-safe waiter management prevents memory leaks
   - Max 100 concurrent waiters per buffer
   - 60-second maximum wait timeout for long-polling operations
@@ -899,7 +811,7 @@ await ssh_interactive_close({
 - Cleanup 5 seconds after process termination
 - Resource limits enforced at spawn time
 - Orphan detection on server startup using `process.kill(pid, 0)`
-- Handling for `bash -c` commands to prevent shell escaping issues (v2.5.1)
+- Handling for `bash -c` commands to prevent shell escaping issues
 
 ### Error Handling
 - Commands wrapped in try/catch blocks
@@ -908,9 +820,9 @@ await ssh_interactive_close({
 - Stdout/stderr typed and captured
 - Timeout errors handled
 - Background process spawn failures captured in output
-- Bash command parsing fixed to prevent server crashes (v2.5.1)
+- Bash command parsing fixed to prevent server crashes
 
-### Modular Architecture (v2.7.0)
+### Modular Architecture
 The server has been refactored from a monolithic 1,910-line file into a modular architecture:
 
 - **Main Server**: Reduced to 192 lines - handles initialization
@@ -943,7 +855,7 @@ npm start
 npm run dev
 ```
 
-### Project Structure (v3.1.0 - AI-Optimized & Refactored)
+### Project Structure
 ```
 macos-shell/
 ├── src/
@@ -992,7 +904,7 @@ macos-shell/
 - macOS only (uses `/bin/zsh`)
 - Commands run with the permissions of the user running Claude Desktop
 - Sudo commands require password input (unless passwordless sudo is configured)
-- Output buffer limited to 300 lines per process (AI-optimized, older output is discarded)
+- Output buffer limited to 300 lines per process (older output is discarded)
 
 ## Troubleshooting
 
@@ -1024,7 +936,7 @@ macos-shell/
    - Close sessions to free their processes
 
 6. **Process output truncated**
-   - CircularBuffer stores only last 300 lines (AI-optimized)
+   - CircularBuffer stores only last 300 lines
    - Use `from_line` parameter to track output position
    - Consider writing output to files for permanent storage
 
@@ -1036,12 +948,12 @@ macos-shell/
      - `cleanup_orphans({ mode: "kill" })` - Kill orphans
    - Individual orphans can be killed with `kill_process`
 
-8. **Server crashes with bash commands** (Fixed in v2.5.1)
+8. **Server crashes with bash commands** (Fixed)
    - Previously, `bash -c` commands with scripts would crash the server
    - This has been fixed by detecting bash commands and preventing double shell interpretation
    - Commands like `bash -c "while true; do echo test; done"` work
 
-9. **Server crashes when killing processes** (Fixed in v2.5.2)
+9. **Server crashes when killing processes** (Fixed)
    - Previously, killing background processes would crash the server with unhandled promise rejection
    - This has been fixed by adding error handling for process termination
    - The server remains stable when processes are killed with SIGTERM or SIGKILL
@@ -1050,51 +962,14 @@ macos-shell/
    - If you have iterm-mcp installed, use the correct tool names:
      - Use `create_shell_session` (not `create_session`)
      - Use `list_shell_sessions` (not `list_sessions`)
-   - These were renamed in v2.5.0 to avoid conflicts
+   - These were renamed to avoid conflicts
 
 ## Roadmap
 
-- [x] **Background process management** (v2.1.0 - Complete)
-  - 4 tools: run_background, list_processes, get_process_output, kill_process
-  - CircularBuffer for output capture
-  - Process lifecycle management
-  - Resource limits and cleanup
-- [x] **Output streaming** (v2.2.0 - Complete)
-  - stream_process_output tool with long-polling
-  - Waits for new output with configurable timeout
-  - Returns lines as they arrive
-  - Maintains read position for continuous streaming
-- [x] **Session persistence across restarts** (v2.3.0 - Complete)
-  - Sessions saved to disk
-  - Process metadata and output history preserved
-  - Working directories and environment variables restored
-  - Command history maintained
-- [x] **Orphan process handling** (v2.4.0 - Complete)
-  - Detection of orphaned processes on startup
-  - `cleanup_orphans` tool for management
-  - `kill_process` enhanced to handle orphans
-  - Warnings in process listings
-- [x] **Tool naming conflict resolution** (v2.5.0 - Complete)
-  - Renamed session management tools to avoid conflicts
-  - Compatibility with other MCP servers
-- [x] **Bash command parsing fix** (v2.5.1 - Complete)
-  - Fixed server crashes with bash commands
-  - Handling for bash -c to prevent double shell interpretation
-- [x] **Process termination handling fix** (v2.5.2 - Complete)
-  - Fixed server crashes when killing background processes
-  - Error handling for SIGTERM/SIGKILL signals
-- [x] **Search output bug fixes** (v2.6.0 - Complete)
-  - Fixed visual indicator alignment in search results
-  - Fixed regex search matching every other line
-- [x] **Interactive SSH command support** (v3.0.0 - Complete)
-  - 8 SSH tools for SSH connections
-  - TTY support with ANSI code stripping for AI processing
-  - Session management for multiple concurrent SSH connections
-  - Output streaming and search capabilities
-- [ ] Process groups and job control
-- [ ] Command aliases and templates
-- [ ] Shell detection (bash, fish, etc.)
-- [ ] Process CPU/memory monitoring
+- Process groups and job control
+- Command aliases and templates
+- Shell detection (bash, fish, etc.)
+- Process CPU/memory monitoring
 
 ## Contributing
 
