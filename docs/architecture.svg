@@ -165,7 +165,7 @@
   
   <!-- Utility Layer -->
   <rect x="300" y="850" width="800" height="110" class="box" rx="5" fill="#fef5e7" stroke-dasharray="5,5"/>
-  <text x="700" y="875" class="text" text-anchor="middle" font-weight="bold">Utility & Infrastructure Layer</text>
+  <text x="700" y="875" class="text" text-anchor="middle" font-weight="bold">Utility &amp; Infrastructure Layer</text>
   <text x="380" y="895" class="small-text">• LRU Cache</text>
   <text x="380" y="910" class="small-text">• Circuit Breaker</text>
   <text x="380" y="925" class="small-text">• Request Dedup</text>
