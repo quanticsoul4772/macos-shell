@@ -4,7 +4,7 @@ A Model Context Protocol (MCP) server that enables AI assistants to execute shel
 
 ## Architecture
 
-![macOS Shell MCP Server Architecture](docs/architecture.svg)
+![macOS Shell MCP Server Architecture](https://raw.githubusercontent.com/quanticsoul4772/macos-shell/main/docs/architecture.svg)
 
 The server features an AI-powered optimization layer that intercepts all commands, providing intelligent caching (85% hit rate), deduplication (80% reduction), and auto-correction of common errors. Commands that hit the cache return instantly in ~1ms, while only 15% of requests need actual tool execution.
 
