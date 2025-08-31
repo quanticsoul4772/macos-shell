@@ -71,26 +71,43 @@ export class AIOptimizedExecutor {
   }
   
   /**
-   * Raw command execution (implement based on existing code)
+   * Raw command execution using secure execa library
    */
   private async executeRaw(command: string, options: any): Promise<any> {
-    // This should call the existing command execution logic
-    // For now, returning a placeholder
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
+    // Import execa for secure command execution
+    const { execa } = await import('execa');
     
-    const result = await execAsync(command, {
-      cwd: options.cwd || process.cwd(),
-      env: { ...process.env, ...options.env },
-      maxBuffer: 10 * 1024 * 1024, // 10MB buffer for AI usage
-    });
+    // Parse command and arguments safely
+    const parts = command.trim().split(/\s+/);
+    const cmd = parts[0];
+    const args = parts.slice(1);
     
-    return {
-      stdout: result.stdout,
-      stderr: result.stderr,
-      exitCode: 0,
-    };
+    try {
+      const result = await execa(cmd, args, {
+        cwd: options.cwd || process.cwd(),
+        env: { ...process.env, ...options.env },
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer for AI usage
+        timeout: options.timeout || 30000,
+        reject: false, // Don't throw on non-zero exit
+        shell: false // Explicitly disable shell to prevent injection
+      });
+      
+      return {
+        stdout: result.stdout || '',
+        stderr: result.stderr || '',
+        exitCode: result.exitCode || 0,
+        success: result.exitCode === 0
+      };
+    } catch (error: any) {
+      // Handle execution errors
+      return {
+        stdout: error.stdout || '',
+        stderr: error.stderr || error.message,
+        exitCode: error.exitCode || -1,
+        success: false,
+        error: error.code || 'EXECUTION_ERROR'
+      };
+    }
   }
   
   /**

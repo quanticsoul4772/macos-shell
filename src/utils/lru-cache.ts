@@ -34,6 +34,10 @@ export class LRUCache<K, V> {
     }
   }
   
+  delete(key: K): boolean {
+    return this.cache.delete(key);
+  }
+  
   clear(): void {
     this.cache.clear();
   }
@@ -44,5 +48,9 @@ export class LRUCache<K, V> {
   
   has(key: K): boolean {
     return this.cache.has(key);
+  }
+  
+  keys(): IterableIterator<K> {
+    return this.cache.keys();
   }
 }

@@ -1,4 +1,8 @@
 import { execa } from 'execa';
+import { resourceCache } from './utils/resource-cache.js';
+import { getLogger } from './utils/logger.js';
+
+const logger = getLogger('resource-monitor');
 
 // Simplified types for resource monitoring
 export interface ProcessResources {
@@ -101,7 +105,7 @@ export class ResourceMonitor {
   private readonly samplingTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly processResources = new Map<string, ProcessResources>();
 
-  // Sample multiple processes in a single ps call
+  // Sample multiple processes with caching
   async sampleProcesses(pids: number[]): Promise<Map<number, ResourceSample>> {
     if (pids.length === 0) {
       return new Map();
@@ -109,9 +113,37 @@ export class ResourceMonitor {
 
     const limitedPids = pids.slice(0, this.MAX_PROCESSES);
     
-    const result = await this.circuitBreaker.execute(async () => {
+    // Check cache first
+    const cachedData = resourceCache.getMultiple(limitedPids);
+    const results = new Map<number, ResourceSample>();
+    
+    // Add cached results
+    for (const [pid, data] of cachedData) {
+      results.set(pid, {
+        pid: data.pid,
+        cpu: data.cpu,
+        memory: data.memory,
+        memoryPercent: data.memoryPercent
+      });
+    }
+    
+    // Find PIDs that need fresh data
+    const pidsToFetch = limitedPids.filter(pid => !cachedData.has(pid));
+    
+    // If all data is cached, return early
+    if (pidsToFetch.length === 0) {
+      logger.debug({ 
+        module: 'resource-monitor', 
+        action: 'cache-hit-all',
+        count: results.size 
+      }, 'All process data served from cache');
+      return results;
+    }
+    
+    // Fetch fresh data for uncached PIDs
+    const freshData = await this.circuitBreaker.execute(async () => {
       const { stdout } = await execa('ps', [
-        '-p', limitedPids.join(','),
+        '-p', pidsToFetch.join(','),
         '-o', 'pid,%cpu,%mem,rss'
       ], {
         timeout: 2000,
@@ -121,11 +153,41 @@ export class ResourceMonitor {
       return stdout;
     });
 
-    if (!result) {
-      return new Map();
+    if (!freshData) {
+      // Return at least the cached data
+      return results;
     }
 
-    return this.parser.parse(result);
+    // Parse fresh data
+    const parsedData = this.parser.parse(freshData);
+    
+    // Cache the fresh data
+    const cacheEntries = new Map<number, { pid: number; cpu: number; memory: number; memoryPercent: number }>();
+    for (const [pid, sample] of parsedData) {
+      results.set(pid, sample);
+      cacheEntries.set(pid, {
+        pid: sample.pid,
+        cpu: sample.cpu,
+        memory: sample.memory,
+        memoryPercent: sample.memoryPercent
+      });
+    }
+    
+    // Batch cache update
+    if (cacheEntries.size > 0) {
+      resourceCache.setMultiple(cacheEntries);
+    }
+    
+    logger.debug({ 
+      module: 'resource-monitor', 
+      action: 'sample',
+      total: limitedPids.length,
+      cached: cachedData.size,
+      fetched: pidsToFetch.length,
+      cacheHitRate: Math.round((cachedData.size / limitedPids.length) * 100)
+    }, `Sampled processes with ${Math.round((cachedData.size / limitedPids.length) * 100)}% cache hit rate`);
+
+    return results;
   }
 
   // Update stored resources with new sample

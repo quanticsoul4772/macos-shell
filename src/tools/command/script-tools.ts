@@ -9,6 +9,7 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import { SessionManager } from '../../session-manager.js';
 import logger from '../../utils/logger.js';
+import { ScriptValidator } from '../../utils/script-validator.js';
 
 export function registerScriptTools(
   server: McpServer,
@@ -38,13 +39,50 @@ export function registerScriptTools(
         };
       }
 
+      // Validate script for security issues
+      const validation = ScriptValidator.validate(script);
+      
+      if (!validation.isValid) {
+        logger.error({ 
+          module: 'script-tools', 
+          action: 'validation-failed',
+          errors: validation.errors,
+          warnings: validation.warnings
+        }, 'Script validation failed');
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: JSON.stringify({
+                error: 'Script validation failed',
+                errors: validation.errors,
+                warnings: validation.warnings,
+                success: false
+              }, null, 2)
+            }
+          ],
+          isError: true
+        };
+      }
+      
+      // Log warnings if any
+      if (validation.warnings.length > 0) {
+        logger.warn({ 
+          module: 'script-tools', 
+          action: 'validation-warnings',
+          warnings: validation.warnings
+        }, 'Script validation completed with warnings');
+      }
+
       let tempDir: string | null = null;
       
       try {
-        // Create temporary script file
+        // Create temporary script file with validated content
         tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'shell-script-'));
         const scriptPath = path.join(tempDir, 'script.sh');
-        await fs.writeFile(scriptPath, script, 'utf8');
+        // Use sanitized script from validation
+        await fs.writeFile(scriptPath, validation.sanitizedScript || script, 'utf8');
         await fs.chmod(scriptPath, 0o755);
         
         logger.debug({ 
