@@ -29,7 +29,7 @@ export class ErrorHandler {
     [/command not found/i, CommandErrorCode.COMMAND_NOT_FOUND],
     [/permission denied/i, CommandErrorCode.PERMISSION_DENIED],
     [/timeout|timed out/i, CommandErrorCode.TIMEOUT],
-    [/network|connection|refused/i, CommandErrorCode.NETWORK_ERROR],
+    [/network|connection|refused|could not resolve host/i, CommandErrorCode.NETWORK_ERROR],
     [/resource temporarily unavailable/i, CommandErrorCode.RESOURCE_LIMIT],
     [/validation failed/i, CommandErrorCode.VALIDATION_ERROR],
     [/script injection/i, CommandErrorCode.SCRIPT_INJECTION],
@@ -105,13 +105,15 @@ export class ErrorHandler {
    * Identify the error code based on error message and properties
    */
   private static identifyErrorCode(error: ExecutionError): CommandErrorCode {
-    // Check exit codes first
-    if (error.exitCode === 126) return CommandErrorCode.PERMISSION_DENIED;
+    // Check exit codes first (these are definitive)
     if (error.exitCode === 127) return CommandErrorCode.COMMAND_NOT_FOUND;
+    if (error.exitCode === 126) return CommandErrorCode.PERMISSION_DENIED;
+    
+    // Check for timed out flag
     if (error.timedOut) return CommandErrorCode.TIMEOUT;
 
-    // Check error message patterns
-    const errorMessage = `${error.message} ${error.stderr || ''}`.toLowerCase();
+    // Check error message patterns - check all fields that might contain error info
+    const errorMessage = `${error.message || ''} ${error.stderr || ''} ${error.stdout || ''}`.toLowerCase();
     
     for (const [pattern, code] of ErrorHandler.ERROR_PATTERNS) {
       if (pattern.test(errorMessage)) {

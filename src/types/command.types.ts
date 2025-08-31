@@ -70,7 +70,10 @@ export function isExecaError(error: unknown): error is ExecaError {
 }
 
 export function isExecutionError(error: unknown): error is ExecutionError {
-  return error instanceof Error && ('exitCode' in error || 'code' in error);
+  return (
+    (error instanceof Error || (typeof error === 'object' && error !== null && 'name' in error && 'message' in error)) &&
+    ('exitCode' in error || 'code' in error || 'timedOut' in error || 'stderr' in error)
+  );
 }
 
 export function isCommandResult(value: unknown): value is CommandResult {
