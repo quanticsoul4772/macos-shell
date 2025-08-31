@@ -17,7 +17,23 @@ const config: Config.InitialOptions = {
       }
     }]
   },
-  testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/test/**/*.test.ts']
+  testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/test/**/*.test.ts'],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/**/*.test.ts',
+    '!src/types/**'
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 50,
+      functions: 50,
+      lines: 60,
+      statements: 60
+    }
+  },
+  testTimeout: 10000,
+  setupFilesAfterEnv: ['<rootDir>/test/setup.ts']
 };
 
 export default config;

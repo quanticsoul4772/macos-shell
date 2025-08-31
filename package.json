@@ -10,7 +10,14 @@
     "dev": "ts-node --esm src/server.ts",
     "test": "jest",
     "test:check": "tsc -p tsconfig.test.json --noEmit",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --maxWorkers=50%",
+    "test:unit": "jest --testMatch='**/*.test.ts' --testPathIgnorePatterns='integration'",
+    "test:integration": "jest --testMatch='**/*.integration.test.ts'",
+    "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
     "clean": "rm -rf build coverage"
   },
   "keywords": [
