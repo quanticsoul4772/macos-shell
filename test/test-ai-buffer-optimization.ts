@@ -1,12 +1,12 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Test script for validating AI buffer optimization
  * Run after implementation to verify 300-line buffers are working correctly
  */
 
-import { EnhancedCircularBuffer } from '../build/utils/enhanced-circular-buffer.js';
-import { AI_BUFFER_SIZE } from '../build/sessions/session-types.js';
+import { EnhancedCircularBuffer } from '../build/utils/enhanced-circular-buffer';
+import { AI_BUFFER_SIZE } from '../build/sessions/session-types';
 
 console.log('🧪 Testing AI Buffer Optimization...\n');
 

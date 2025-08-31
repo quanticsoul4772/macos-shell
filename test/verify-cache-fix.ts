@@ -1,11 +1,11 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Test the smart caching fix
  * Run this after rebuilding to verify status commands aren't cached
  */
 
-import { cacheClassifier, CacheStrategy } from '../build/ai-cache-classifier.js';
+import { cacheClassifier, CacheStrategy } from '../build/ai-cache-classifier';
 
 console.log('Testing Smart Cache Classifier...\n');
 

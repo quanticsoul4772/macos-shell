@@ -1,5 +1,5 @@
-#!/usr/bin/env node
-import { NativeSSHManager } from '../build/utils/native-ssh-manager.js';
+#!/usr/bin/env tsx
+import { NativeSSHManager } from '../build/utils/native-ssh-manager';
 
 async function testKeyAuth() {
   const manager = new NativeSSHManager();

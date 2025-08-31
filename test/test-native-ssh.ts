@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 // Test script for native SSH implementation
-import { NativeSSHManager } from '../build/utils/native-ssh-manager.js';
+import { NativeSSHManager } from '../build/utils/native-ssh-manager';
 
 async function testNativeSSH() {
   console.log('Testing Native SSH Implementation');

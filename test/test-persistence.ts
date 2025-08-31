@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 // Test script for session persistence
 import { exec } from 'child_process';

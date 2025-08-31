@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": false,
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["test/**/*", "src/**/*", "jest.config.ts"],
+  "exclude": ["node_modules", "build", "coverage"]
+}

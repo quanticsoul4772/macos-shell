@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Test script to verify smart caching behavior
@@ -10,7 +10,7 @@ import { cacheClassifier } from '../src/ai-cache-classifier.js';
 console.log('=== macOS Shell MCP - Smart Cache Classifier Test ===\n');
 
 // Test commands
-const testCommands = [
+const testCommands: string[] = [
   // Status commands (should NEVER cache)
   'git status',
   'git diff',
@@ -51,7 +51,7 @@ const testCommands = [
 
 console.log('Testing cache classification for common commands:\n');
 
-testCommands.forEach(command => {
+testCommands.forEach((command: string) => {
   const result = cacheClassifier.explainClassification(command);
   console.log(result);
 });

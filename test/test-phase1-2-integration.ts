@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Integration test showing Phase 1 and Phase 2 working together
@@ -14,13 +14,13 @@ console.log('=== Phase 1 + 2 Integration Test ===\n');
 
 // Mock the saveLearningRule function for testing
 let savedRules = [];
-const mockSaveLearningRule = async (rule) => {
+const mockSaveLearningRule = async (rule: any) => {
   savedRules.push(rule);
   console.log(`[SAVE] Rule saved: ${rule.pattern} → ${CacheStrategy[rule.strategy]}`);
 };
 
 // Set up duplicate detection listener (simulating ai-command-enhancer)
-duplicateDetector.on('duplicate-detected', async (event) => {
+duplicateDetector.on('duplicate-detected', async (event: any) => {
   console.log(`\n[EVENT] Duplicate detected for "${event.command}"`);
   console.log(`  Duplicate count: ${event.duplicateCount}`);
   console.log(`  Time span: ${event.timeSpan}ms`);

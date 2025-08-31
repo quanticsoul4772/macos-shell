@@ -1,7 +1,7 @@
 // Unit tests for PatternMatcher
 // Run with: node test/test-pattern-matcher.js
 
-import { PatternMatcher, PatternType, createPatternMatcher } from '../build/pattern-matcher.js';
+import { PatternMatcher, PatternType, createPatternMatcher } from '../build/pattern-matcher';
 
 // Test utilities
 function assert(condition, message) {

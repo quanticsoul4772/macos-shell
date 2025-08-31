@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Integration test showing Phases 1, 2, and 3 working together
@@ -31,7 +31,7 @@ await learningPersistence.initialize();
 console.log(`Loaded ${learningPersistence.getRules().length} existing rules\n`);
 
 // Set up duplicate detection listener (simulating ai-command-enhancer)
-duplicateDetector.on('duplicate-detected', async (event) => {
+duplicateDetector.on('duplicate-detected', async (event: any) => {
   console.log(`[AUTO-LEARN] Duplicate detected for "${event.command}"`);
   
   // Auto-mark as never cache
