@@ -1,6 +1,6 @@
-# AI-Specific Features (v3.2.0)
+# AI Features (v3.2.0)
 
-This macOS Shell MCP server includes optimizations for AI assistant usage patterns.
+This macOS Shell MCP server includes features for AI assistant usage patterns.
 
 ## Features
 
@@ -13,7 +13,7 @@ This macOS Shell MCP server includes optimizations for AI assistant usage patter
 
 ## 1. Cache System
 
-The server includes a 4-phase caching system that prevents stale data while improving performance.
+The server includes a 4-phase caching system for performance.
 
 **Capabilities:**
 - Manual cache control via MCP tools
@@ -70,11 +70,11 @@ Memory Usage: 48KB/session
 
 ## Design Philosophy
 
-These optimizations are designed for AI assistants:
+These features are for AI assistants:
 - No interactive features or progress bars
 - Caching (not "live" updates)
 - Error correction without confirmation
 - Pattern-based command prediction
 - Memory usage for AI context limits
 
-Optimizations are active by default with zero configuration required.
+Features are active by default.

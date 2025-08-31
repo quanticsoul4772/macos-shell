@@ -2,14 +2,14 @@
 
 ## Overview
 
-This guide provides practical examples and patterns for AI agents using the macOS Shell MCP Server's performance optimization features. All examples are designed for programmatic consumption without any UI components.
+This guide provides examples and patterns for AI agents using the macOS Shell MCP Server's performance features. All examples are for programmatic consumption without UI components.
 
 ## Quick Start
 
 ### Basic Command Execution
 
 ```typescript
-// Simple command with automatic optimization
+// Command execution
 const result = await commandPool.execute('ls', ['-la', '/tmp']);
 console.log(result.stdout);
 ```
@@ -17,7 +17,7 @@ console.log(result.stdout);
 ### Priority-Based Execution
 
 ```typescript
-// Critical system command (priority 1)
+// System command (priority 1)
 await commandPool.execute('kill', ['-9', processId], {}, 1);
 
 // Normal operation (priority 5)
@@ -131,7 +131,7 @@ class AdaptiveExecutor {
 }
 ```
 
-### 4. Intelligent Fallback Strategy
+### 4. Fallback Strategy
 
 ```typescript
 class IntelligentExecutor {
@@ -346,7 +346,7 @@ class ContinuousMonitor {
       } catch (error) {
         console.error('Monitoring error:', error);
         
-        // If circuit is open, increase interval significantly
+        // If circuit is open, increase interval
         if (error.message.includes('Circuit breaker is OPEN')) {
           this.interval = 60000; // Back off to 1 minute
         }
@@ -456,7 +456,7 @@ class MultiStagePipeline {
     // Implement stage-specific recovery
     console.log(`Attempting recovery for ${stage}:`, error.message);
     
-    // Simple retry with backoff
+    // Retry with backoff
     await new Promise(resolve => setTimeout(resolve, 5000));
     
     try {
@@ -584,7 +584,7 @@ console.log(report);
 
 ## Error Handling Patterns
 
-### Comprehensive Error Recovery
+### Error Recovery
 
 ```typescript
 class ErrorRecoveryAgent {
@@ -662,7 +662,7 @@ class ErrorRecoveryAgent {
 
 ## Best Practices Summary
 
-### DO's
+### Do's
 
 1. **Use Priority Levels**: Always specify appropriate priority for commands
 2. **Check System Health**: Verify system state before heavy operations
@@ -673,7 +673,7 @@ class ErrorRecoveryAgent {
 7. **Use Deduplication**: Prevent duplicate operations within time windows
 8. **Adaptive Behavior**: Adjust behavior based on system load
 
-### DON'Ts
+### Don'ts
 
 1. **Don't Ignore Circuit States**: Never bypass open circuit breakers
 2. **Don't Flood the System**: Respect rate limits and queue sizes
@@ -681,7 +681,7 @@ class ErrorRecoveryAgent {
 4. **Don't Use Fixed Delays**: Use adaptive delays based on load
 5. **Don't Ignore Errors**: Implement proper error recovery
 6. **Don't Skip Health Checks**: Always verify system can handle operations
-7. **Don't Use High Priority for Everything**: Reserve for truly critical operations
+7. **Don't Use High Priority for Everything**: Reserve for critical operations
 
 ## Debugging Tips
 
@@ -722,4 +722,6 @@ setInterval(() => {
 
 ## Conclusion
 
-This guide provides comprehensive patterns for AI agents to effectively use the macOS Shell MCP Server's optimization features. By following these patterns and best practices, AI agents can achieve reliable, efficient, and adaptive command execution even under challenging system conditions.
+This guide provides patterns for AI agents to use the macOS Shell MCP Server's optimization features. By following these patterns and best practices, AI agents can achieve reliable command execution even under challenging system conditions.
+
+---

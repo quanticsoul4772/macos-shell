@@ -2,15 +2,15 @@
 
 ## Overview
 
-The macOS Shell MCP Server has been enhanced with sophisticated performance and reliability optimizations specifically designed for AI agent usage. This document provides a comprehensive architectural overview of these improvements.
+The macOS Shell MCP Server includes performance and reliability features for AI agent usage. This document provides an architectural overview of these components.
 
 ## Core Architecture Components
 
 ### 1. Command Execution Pool (`src/utils/command-pool.ts`)
 
-The command pool manages concurrent command execution with intelligent queueing and rate limiting.
+The command pool manages concurrent command execution with queueing and rate limiting.
 
-**Key Features:**
+**Features:**
 - **Concurrent Execution Management**: Controls up to 10 concurrent commands
 - **Priority Queue System**: Commands execute based on priority (1-10, lower = higher priority)
 - **Rate Limiting**: 100 requests per minute to prevent system overload
@@ -35,7 +35,7 @@ The command pool manages concurrent command execution with intelligent queueing 
 
 ### 2. Circuit Breaker Pattern (`src/utils/circuit-breaker.ts`)
 
-Implements the circuit breaker pattern to prevent cascading failures and enable self-healing.
+Implements the circuit breaker pattern to prevent cascading failures.
 
 **State Machine:**
 ```
@@ -79,7 +79,7 @@ Prevents redundant operations by coalescing identical requests within a time win
 
 ### 4. System Guardian (`src/utils/system-guardian.ts`)
 
-Monitors system resources and implements graceful degradation policies.
+Monitors system resources and implements degradation policies.
 
 **Load Levels and Policies:**
 
@@ -99,7 +99,7 @@ System Metrics → Load Calculator → Policy Selector → Enforcement
 
 ### 5. AI Metrics Collector (`src/utils/ai-metrics.ts`)
 
-Collects and provides metrics optimized for AI decision-making.
+Collects and provides metrics for AI decision-making.
 
 **Metrics Structure:**
 ```typescript
@@ -432,6 +432,6 @@ All inputs are validated through:
 
 ## Conclusion
 
-The AI optimization architecture provides a robust, self-healing, and adaptive system for command execution. Through intelligent resource management, failure prevention, and performance optimization, it ensures reliable operation even under challenging conditions.
+The architecture provides a system for command execution with resource management, failure prevention, and performance features for operation under various conditions.
 
-The architecture is specifically designed for AI agent consumption, with no human-facing UI components, focusing entirely on programmatic interfaces and machine-readable metrics.
+The architecture is for AI agent consumption, with no human-facing UI components, using programmatic interfaces and machine-readable metrics.

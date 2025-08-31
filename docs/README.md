@@ -1,6 +1,6 @@
 # macOS Shell MCP Server Documentation
 
-This directory contains comprehensive documentation for the macOS Shell MCP Server.
+This directory contains documentation for the macOS Shell MCP Server.
 
 ## Documentation Structure
 
@@ -38,6 +38,6 @@ This directory contains comprehensive documentation for the macOS Shell MCP Serv
 ## Version Information
 
 **Current Version**: 3.2.0  
-**Status**: Production Ready with AI-Optimized Memory Usage
+**Status**: Operational
 
 See [CHANGELOG](CHANGELOG.md) for detailed version history.

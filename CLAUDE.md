@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server that enables AI assistants to execute shell commands on macOS with advanced session management, caching, and AI-specific optimizations. It's written in TypeScript and uses the MCP SDK to expose shell functionality through a structured tool interface.
+This is a Model Context Protocol (MCP) server that provides shell command execution on macOS with session management and caching. It's written in TypeScript and uses the MCP SDK to expose shell functionality through a tool interface.
 
 ## Development Commands
 
@@ -27,15 +27,15 @@ npm start
 
 ## Architecture Overview
 
-The codebase follows a modular architecture with clear separation of concerns:
+The codebase follows a modular architecture with separation of concerns:
 
 ### Core Server (`src/server.ts`)
 - Main entry point that initializes the MCP server
 - Registers all tool modules
-- Handles graceful shutdown and cleanup
+- Handles shutdown and cleanup
 
 ### Session Management (`src/session-manager.ts`)
-- Central orchestrator for sessions, processes, and history
+- Orchestrator for sessions, processes, and history
 - Uses modular components from `src/sessions/`:
   - `session-types.ts`: Type definitions and constants
   - `session-persistence.ts`: Save/load functionality
@@ -53,7 +53,7 @@ The server exposes 35 MCP tools organized by category:
 - `cache-management-tools.ts`: Cache operations and statistics
 
 ### AI Optimization Layer (`src/ai-*.ts`)
-- `ai-cache.ts`: Intelligent command caching with TTL strategies
+- `ai-cache.ts`: Command caching with TTL strategies
 - `ai-dedup.ts`: Command deduplication within 10-second windows
 - `ai-error-handler.ts`: Error recovery and suggestions
 - `ai-monitor.ts`: Performance monitoring and statistics
@@ -63,10 +63,10 @@ The server exposes 35 MCP tools organized by category:
 - `enhanced-circular-buffer.ts`: Memory-safe output buffering
 - `lru-cache.ts`: LRU cache implementation
 - `debouncer.ts`: Debouncing for save operations
-- `logger.ts`: Structured logging system
+- `logger.ts`: Logging system
 - `batch-executor.ts`: Batch command execution
 
-## Key Implementation Details
+## Implementation Details
 
 ### Module System
 - Uses ES modules with `.js` extensions in imports (required for NodeNext)
@@ -76,11 +76,11 @@ The server exposes 35 MCP tools organized by category:
 ### Session Persistence
 - Sessions persist to `~/.macos-shell/sessions/` as JSON files
 - Background processes tracked in `~/.macos-shell/processes/`
-- Automatic save debouncing to prevent excessive disk writes
+- Save debouncing to prevent excessive disk writes
 
 ### Background Process Management
 - CircularBuffer stores last 300 lines per process
-- Automatic cleanup 5 seconds after process termination
+- Cleanup 5 seconds after process termination
 - Orphan detection on server startup
 - Resource monitoring for CPU and memory usage
 
@@ -110,7 +110,7 @@ The project uses Jest with ts-jest for testing:
 1. Create tool handler in appropriate module under `src/tools/`
 2. Register the tool in the module's export function
 3. Follow existing patterns for parameter validation using Zod schemas
-4. Add appropriate logging and error handling
+4. Add logging and error handling
 
 ### Modifying AI Features
 - Cache strategies: Edit `src/ai-cache-classifier.ts`
@@ -122,7 +122,7 @@ The project uses Jest with ts-jest for testing:
 - File logging: Set `MCP_LOG_FILE=/path/to/log`
 - Monitor AI stats: Check stderr output every minute
 
-## Important Conventions
+## Conventions
 
 ### Import Statements
 Always use `.js` extensions for local imports:
@@ -145,7 +145,7 @@ export function registerCommandTools(server: McpServer, sessionManager: SessionM
 ```
 
 ### Error Response Format
-Return structured errors:
+Return errors in this format:
 ```typescript
 return {
   error: true,

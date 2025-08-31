@@ -1,9 +1,9 @@
-# AI-Optimized Performance Improvements
+# AI Performance Improvements
 
 ## Overview
-Advanced performance and reliability improvements specifically designed for AI usage of the MCP server. No dashboards, no UI - just pure AI optimization.
+Performance and reliability improvements for AI usage of the MCP server. No dashboards, no UI - focused on AI optimization.
 
-## 🚀 Key Improvements
+## Improvements
 
 ### 1. Command Execution Pool
 **File**: `src/utils/command-pool.ts`
@@ -41,7 +41,7 @@ Advanced performance and reliability improvements specifically designed for AI u
 **Features**:
 - **Coalesces identical requests**: Multiple identical requests share same execution
 - **TTL-based caching**: 5 seconds for commands, 2 seconds for file operations
-- **Smart key generation**: SHA256 hashing for command uniqueness
+- **Key generation**: SHA256 hashing for command uniqueness
 - **Error caching option**: Can cache failures to prevent repeated attempts
 
 **AI Benefits**:
@@ -55,7 +55,7 @@ Advanced performance and reliability improvements specifically designed for AI u
 **Features**:
 - **Load monitoring**: Tracks CPU, memory, queue depth
 - **Four load levels**: LOW, NORMAL, HIGH, CRITICAL
-- **Degradation policies**: Automatically adjusts limits based on load
+- **Degradation policies**: Adjusts limits based on load
 - **AI recommendations**: Provides actionable suggestions
 
 **Degradation Policies**:
@@ -67,7 +67,7 @@ CRITICAL: 2 concurrent, 10s timeout, cache-only mode
 ```
 
 **AI Benefits**:
-- Graceful degradation under load
+- Degradation under load
 - Prevents system overload
 - Maintains responsiveness
 
@@ -92,22 +92,22 @@ CRITICAL: 2 concurrent, 10s timeout, cache-only mode
 }
 ```
 
-## 📊 Performance Impact
+## Performance Impact
 
 ### Before Improvements
-- No rate limiting → command flooding possible
-- No circuit breakers → cascading failures
-- No deduplication → redundant operations
-- No load management → system overload
+- No rate limiting - command flooding possible
+- No circuit breakers - cascading failures
+- No deduplication - redundant operations
+- No load management - system overload
 
 ### After Improvements
 - **Rate limited**: 100 commands/minute max
 - **Self-healing**: Circuit breakers prevent cascade failures
-- **Efficient**: Deduplication reduces load by up to 80%
-- **Adaptive**: System adjusts to load automatically
-- **Observable**: AI-friendly metrics for decision making
+- **Deduplication**: Reduces load by up to 80%
+- **Adaptive**: System adjusts to load
+- **Observable**: Metrics for decision making
 
-## 🤖 AI Usage Examples
+## AI Usage Examples
 
 ### Using Command Pool with Priority
 ```typescript
@@ -182,9 +182,9 @@ await executeWithLimits({
 });
 ```
 
-## 🔧 Configuration
+## Configuration
 
-All improvements are pre-configured for optimal AI usage:
+Configuration for AI usage:
 
 - **Command Pool**: 10 concurrent, 100 queue, 100/min rate limit
 - **Circuit Breakers**: 5 failure threshold, 1 minute timeout
@@ -192,25 +192,25 @@ All improvements are pre-configured for optimal AI usage:
 - **System Guardian**: Automatic load detection and adjustment
 - **AI Metrics**: 100 sample history, trend analysis
 
-## ✅ Verification
+## Verification
 
 ```bash
-npm run build  # ✅ Builds successfully
-npm test       # ✅ Tests passing
+npm run build  # Builds successfully
+npm test       # Tests passing
 ```
 
-## 🎯 Summary
+## Summary
 
 These improvements provide:
 
 1. **Resilience**: Self-healing with circuit breakers
 2. **Efficiency**: Deduplication and caching
 3. **Adaptability**: Automatic load adjustment
-4. **Observability**: AI-friendly metrics
+4. **Observability**: Metrics for AI agents
 5. **Control**: Rate limiting and prioritization
 
-The system now intelligently manages resources, prevents overload, and provides AI agents with the information needed to make optimal execution decisions - all without any human-facing dashboards or UI.
+The system manages resources, prevents overload, and provides AI agents with the information needed to make execution decisions - all without human-facing dashboards or UI.
 
 ---
 
-*AI-optimized improvements completed on 2025-08-31*
+*AI improvements completed on 2025-08-31*

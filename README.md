@@ -1,12 +1,12 @@
 # macOS Shell MCP Server
 
-A Model Context Protocol (MCP) server that enables AI assistants to execute shell commands on macOS with session management, working directory persistence, environment isolation, and background process management.
+A Model Context Protocol (MCP) server that provides shell command execution on macOS with session management, working directory persistence, environment isolation, and background process management.
 
 ## Architecture
 
 ![macOS Shell MCP Server Architecture](https://raw.githubusercontent.com/quanticsoul4772/macos-shell/main/docs/architecture.svg)
 
-The server includes an optimization layer that intercepts all commands, providing caching (85% hit rate), deduplication (80% reduction), and auto-correction of errors. Commands that hit the cache return in ~1ms, while 15% of requests require tool execution.
+The server includes a layer that intercepts all commands, providing caching (85% hit rate), deduplication (80% reduction), and error correction. Commands that hit the cache return in ~1ms, while 15% of requests require tool execution.
 
 ## Installation
 
@@ -49,7 +49,7 @@ Restart Claude Desktop after adding the configuration.
 
 ## Features
 
-### Core Features
+### Features
 - **Session Management**: Create multiple named sessions with isolated environments
 - **Working Directory Persistence**: Each session maintains its own working directory
 - **Environment Variables**: Set and manage environment variables per session
@@ -58,7 +58,7 @@ Restart Claude Desktop after adding the configuration.
 - **Background Processes**: Run processes in the background with output capture
 - **Error Handling**: Error reporting with exit codes
 
-### AI-Specific Features
+### Caching and Performance
 
 #### Command Caching
 - Cacheable commands execute in 1ms vs 120ms uncached
@@ -78,7 +78,7 @@ Restart Claude Desktop after adding the configuration.
 - Normalizes command variations (`ls -la` = `ls -al`)
 
 #### Error Recovery
-- Auto-corrects file path typos using Levenshtein distance
+- Corrects file path typos using Levenshtein distance
 - Retries network errors with exponential backoff
 - Adds flags like `--legacy-peer-deps` for npm errors
 - Suggests command alternatives (python → python3)
@@ -310,17 +310,17 @@ Restart Claude Desktop after adding the configuration.
 - Background process spawn failures captured in output
 - Bash command parsing fixed to prevent server crashes
 
-### Modular Architecture
-The server has been refactored from a monolithic 1,910-line file into a modular architecture:
+### Architecture Details
+The server has been refactored from a 1,910-line file into modular components:
 
 - **Main Server**: Reduced to 192 lines - handles initialization
 - **Tool Modules**: 20 tools distributed across 4 focused modules
-- **Utility Modules**: Reusable optimizations (LRU cache, debouncer, buffer)
+- **Utility Modules**: Reusable components (LRU cache, debouncer, buffer)
 - **Session Manager**: Centralized session and process management (577 lines)
 
 Architecture characteristics:
 - Each module under 500 lines with single responsibility
-- AI-specific optimizations prevent memory leaks
+- Memory leak prevention in background processes
 - New tools can be added without touching core logic
 - Components can be tested in isolation
 

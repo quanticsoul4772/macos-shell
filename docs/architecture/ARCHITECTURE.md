@@ -2,7 +2,7 @@
 
 ## Overview
 
-The macOS Shell MCP Server has been refactored from a monolithic 1,910-line file into a modular architecture for AI usage patterns. This document details the current architecture, design decisions, and implementation patterns.
+The macOS Shell MCP Server has been refactored from a 1,910-line file into a modular architecture for AI usage patterns. This document details the current architecture, design decisions, and implementation patterns.
 
 ## Architecture Evolution
 
@@ -18,12 +18,12 @@ The macOS Shell MCP Server has been refactored from a monolithic 1,910-line file
 - Background process management added
 - Reduced to ~500 lines per module
 
-### Version 3.x - AI-Optimized Architecture (Current)
+### Version 3.x - Current Architecture
 - Modular architecture
-- AI-specific optimizations
+- AI features
 - Performance monitoring
 - Caching and deduplication
-- Memory management implementations
+- Memory management
 - **Buffer optimization**: 300-line buffers (97% memory reduction)
 
 ## Core Architecture Components
@@ -176,7 +176,7 @@ if (circuitBreaker.isOpen()) {
 
 ### Circular Buffer
 - Fixed size: 300 lines per process (reduced from 10,000)
-- AI-optimized: 97% memory reduction (48KB vs 1.6MB)
+- 97% memory reduction (48KB vs 1.6MB)
 - AI processes output immediately, no scrollback needed
 - Waiter management with limits
 - Maximum 100 concurrent waiters

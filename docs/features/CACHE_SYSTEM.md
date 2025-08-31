@@ -1,10 +1,10 @@
 # Cache System
 
-The macOS Shell MCP server includes a 4-phase caching system that adapts to usage patterns while preventing stale data.
+The macOS Shell MCP server includes a 4-phase caching system for command outputs.
 
 ## Overview
 
-The cache system determines which commands can be cached and for how long, learning from usage patterns to optimize performance without sacrificing data freshness.
+The cache system determines which commands can be cached and for how long based on usage patterns.
 
 ### Features
 
@@ -205,4 +205,4 @@ The cache system provides:
 - **Memory usage**: Under 10MB
 - **Learning overhead**: <1ms per command execution
 
-The system optimizes cache hit rates while preventing stale data through pattern detection and learning.
+The system uses pattern detection and learning for cache management.
