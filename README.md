@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server that enables AI assistants to execute shel
 
 ![macOS Shell MCP Server Architecture](https://raw.githubusercontent.com/quanticsoul4772/macos-shell/main/docs/architecture.svg)
 
-The server features an AI-powered optimization layer that intercepts all commands, providing intelligent caching (85% hit rate), deduplication (80% reduction), and auto-correction of common errors. Commands that hit the cache return instantly in ~1ms, while only 15% of requests need actual tool execution.
+The server includes an optimization layer that intercepts all commands, providing caching (85% hit rate), deduplication (80% reduction), and auto-correction of errors. Commands that hit the cache return in ~1ms, while 15% of requests require tool execution.
 
 ## Installation
 
@@ -86,7 +86,7 @@ Restart Claude Desktop after adding the configuration.
 #### Performance Monitoring
 - Stats logged every minute to stderr
 - Tracks cache hit rate, deduplication rate, error recovery
-- Shows command patterns for optimization insights
+- Shows command patterns for optimization
 
 ## Available Tools (35 Total)
 
@@ -287,11 +287,11 @@ Restart Claude Desktop after adding the configuration.
 - Output captured line-by-line to CircularBuffer
 - CircularBuffer features:
   - Stores last 300 lines per process
-  - Memory-safe waiter management prevents memory leaks
+  - Waiter management prevents memory leaks
   - Max 100 concurrent waiters per buffer
   - 60-second maximum wait timeout for long-polling operations
   - Cleanup of stale waiters every 30 seconds
-  - Force cleanup when approaching waiter limit
+  - Cleanup when approaching waiter limit
   - Batch notification processing
   - Cleanup on process termination
 - Separate tracking for stdout and stderr
@@ -318,7 +318,7 @@ The server has been refactored from a monolithic 1,910-line file into a modular 
 - **Utility Modules**: Reusable optimizations (LRU cache, debouncer, buffer)
 - **Session Manager**: Centralized session and process management (577 lines)
 
-Key benefits:
+Architecture characteristics:
 - Each module under 500 lines with single responsibility
 - AI-specific optimizations prevent memory leaks
 - New tools can be added without touching core logic
@@ -456,7 +456,7 @@ Contributions are welcome! Please submit pull requests or issues on GitHub.
 
 ## Changelog
 
-See [CHANGELOG.md](docs/CHANGELOG.md) for detailed version history.
+See [CHANGELOG.md](docs/CHANGELOG.md) for version history.
 
 ## License
 
