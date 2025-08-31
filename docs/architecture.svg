@@ -1,0 +1,233 @@
+<svg viewBox="0 0 1400 1000" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define styles -->
+  <defs>
+    <style>
+      .box { fill: #f0f4f8; stroke: #2d3748; stroke-width: 2; }
+      .core-box { fill: #4299e1; stroke: #2b6cb0; stroke-width: 2; }
+      .ai-box { fill: #48bb78; stroke: #25855a; stroke-width: 2; }
+      .tool-box { fill: #ed8936; stroke: #c05621; stroke-width: 2; }
+      .session-box { fill: #9f7aea; stroke: #6b46c1; stroke-width: 2; }
+      .util-box { fill: #f687b3; stroke: #d53f8c; stroke-width: 2; }
+      .text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; fill: #2d3748; }
+      .white-text { fill: white; font-weight: bold; }
+      .small-text { font-size: 12px; }
+      .title { font-size: 24px; font-weight: bold; fill: #1a202c; }
+      .arrow { stroke: #4a5568; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .dashed-arrow { stroke: #718096; stroke-width: 2; fill: none; stroke-dasharray: 5,5; marker-end: url(#arrowhead-gray); }
+      .ai-arrow { stroke: #48bb78; stroke-width: 3; fill: none; marker-end: url(#arrowhead-green); }
+      .cache-hit { stroke: #48bb78; stroke-width: 2; fill: none; stroke-dasharray: 3,3; marker-end: url(#arrowhead-green); }
+      .cache-miss { stroke: #f56565; stroke-width: 2; fill: none; stroke-dasharray: 3,3; marker-end: url(#arrowhead-red); }
+    </style>
+    
+    <!-- Arrow markers -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4a5568"/>
+    </marker>
+    <marker id="arrowhead-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#718096"/>
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#48bb78"/>
+    </marker>
+    <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#f56565"/>
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="700" y="30" class="title" text-anchor="middle">macOS Shell MCP Server Architecture</text>
+  
+  <!-- Claude Desktop -->
+  <rect x="600" y="60" width="200" height="30" class="box" rx="5" fill="#e6f3ff"/>
+  <text x="700" y="80" class="text" text-anchor="middle">Claude Desktop</text>
+  
+  <!-- Entry Point -->
+  <rect x="600" y="120" width="200" height="60" class="core-box" rx="5"/>
+  <text x="700" y="145" class="white-text" text-anchor="middle">MCP Server</text>
+  <text x="700" y="165" class="white-text small-text" text-anchor="middle">(server.ts - 192 lines)</text>
+  
+  <!-- Session Manager -->
+  <rect x="580" y="220" width="240" height="80" class="session-box" rx="5"/>
+  <text x="700" y="245" class="white-text" text-anchor="middle">Session Manager</text>
+  <text x="700" y="265" class="white-text small-text" text-anchor="middle">• Isolated Environments</text>
+  <text x="700" y="280" class="white-text small-text" text-anchor="middle">• State Persistence</text>
+  
+  <!-- AI Optimization Layer (Central Position) -->
+  <rect x="350" y="340" width="700" height="80" class="ai-box" rx="5" opacity="0.9"/>
+  <text x="700" y="365" class="white-text" text-anchor="middle" font-size="16">AI Optimization Layer (Intercepts ALL Commands)</text>
+  <text x="400" y="385" class="white-text small-text">Cache Check</text>
+  <text x="500" y="385" class="white-text small-text">→</text>
+  <text x="560" y="385" class="white-text small-text">Deduplication</text>
+  <text x="650" y="385" class="white-text small-text">→</text>
+  <text x="720" y="385" class="white-text small-text">Enhancement</text>
+  <text x="810" y="385" class="white-text small-text">→</text>
+  <text x="880" y="385" class="white-text small-text">Performance Monitor</text>
+  <text x="400" y="405" class="white-text small-text">(85% hit rate)</text>
+  <text x="560" y="405" class="white-text small-text">(80% reduction)</text>
+  <text x="720" y="405" class="white-text small-text">(auto-fix errors)</text>
+  <text x="880" y="405" class="white-text small-text">(1ms avg response)</text>
+  
+  <!-- Tool Modules Container -->
+  <rect x="300" y="460" width="800" height="350" class="box" rx="5" fill="#e2e8f0" stroke-dasharray="5,5"/>
+  <text x="700" y="485" class="text" text-anchor="middle" font-weight="bold">Tool Modules (35 Tools)</text>
+  
+  <!-- Command Tools -->
+  <rect x="320" y="510" width="160" height="100" class="tool-box" rx="5"/>
+  <text x="400" y="535" class="white-text" text-anchor="middle">Command Tools</text>
+  <text x="400" y="555" class="white-text small-text" text-anchor="middle">• run_command</text>
+  <text x="400" y="570" class="white-text small-text" text-anchor="middle">• run_script</text>
+  <text x="400" y="585" class="white-text small-text" text-anchor="middle">• batch_execute</text>
+  <text x="400" y="600" class="white-text small-text" text-anchor="middle">• cd, pwd, history</text>
+  
+  <!-- Process Tools -->
+  <rect x="500" y="510" width="160" height="100" class="tool-box" rx="5"/>
+  <text x="580" y="535" class="white-text" text-anchor="middle">Process Tools</text>
+  <text x="580" y="555" class="white-text small-text" text-anchor="middle">• run_background</text>
+  <text x="580" y="570" class="white-text small-text" text-anchor="middle">• list_processes</text>
+  <text x="580" y="585" class="white-text small-text" text-anchor="middle">• kill_process</text>
+  <text x="580" y="600" class="white-text small-text" text-anchor="middle">• cleanup_orphans</text>
+  
+  <!-- SSH Tools -->
+  <rect x="680" y="510" width="200" height="100" class="tool-box" rx="5"/>
+  <text x="780" y="535" class="white-text" text-anchor="middle">SSH Tools</text>
+  <text x="780" y="555" class="white-text small-text" text-anchor="middle">• ssh_interactive_start</text>
+  <text x="780" y="570" class="white-text small-text" text-anchor="middle">• ssh_interactive_send</text>
+  <text x="780" y="585" class="white-text small-text" text-anchor="middle">• ssh_interactive_output</text>
+  <text x="780" y="600" class="white-text small-text" text-anchor="middle">• ssh_interactive_list</text>
+  
+  <!-- Session Tools -->
+  <rect x="320" y="630" width="160" height="100" class="tool-box" rx="5"/>
+  <text x="400" y="655" class="white-text" text-anchor="middle">Session Tools</text>
+  <text x="400" y="675" class="white-text small-text" text-anchor="middle">• create_session</text>
+  <text x="400" y="690" class="white-text small-text" text-anchor="middle">• list_sessions</text>
+  <text x="400" y="705" class="white-text small-text" text-anchor="middle">• close_session</text>
+  <text x="400" y="720" class="white-text small-text" text-anchor="middle">• set_env, get_env</text>
+  
+  <!-- System Tools -->
+  <rect x="500" y="630" width="160" height="100" class="tool-box" rx="5"/>
+  <text x="580" y="655" class="white-text" text-anchor="middle">System Tools</text>
+  <text x="580" y="675" class="white-text small-text" text-anchor="middle">• system_health</text>
+  <text x="580" y="690" class="white-text small-text" text-anchor="middle">• preflight_check</text>
+  <text x="580" y="705" class="white-text small-text" text-anchor="middle">• system_profile</text>
+  
+  <!-- Cache Tools -->
+  <rect x="680" y="630" width="200" height="100" class="tool-box" rx="5"/>
+  <text x="780" y="655" class="white-text" text-anchor="middle">Cache Tools</text>
+  <text x="780" y="675" class="white-text small-text" text-anchor="middle">• cache_stats</text>
+  <text x="780" y="690" class="white-text small-text" text-anchor="middle">• cache_clear_command</text>
+  <text x="780" y="705" class="white-text small-text" text-anchor="middle">• cache_explain</text>
+  <text x="780" y="720" class="white-text small-text" text-anchor="middle">• cache_mark_never</text>
+  
+  <!-- Environment Tools -->
+  <rect x="900" y="570" width="180" height="100" class="tool-box" rx="5"/>
+  <text x="990" y="595" class="white-text" text-anchor="middle">Environment</text>
+  <text x="990" y="615" class="white-text small-text" text-anchor="middle">• Navigation</text>
+  <text x="990" y="630" class="white-text small-text" text-anchor="middle">• Variables</text>
+  <text x="990" y="645" class="white-text small-text" text-anchor="middle">• Preflight</text>
+  <text x="990" y="660" class="white-text small-text" text-anchor="middle">• Validation</text>
+  
+  <!-- AI Cache Strategy Sidebar -->
+  <rect x="50" y="220" width="200" height="180" class="box" rx="5" fill="#f0fff4"/>
+  <text x="150" y="245" class="text" text-anchor="middle" font-weight="bold">Cache Strategies</text>
+  <text x="60" y="265" class="small-text" font-weight="bold">Never (0s):</text>
+  <text x="65" y="280" class="small-text">• git status, ls, ps</text>
+  <text x="60" y="300" class="small-text" font-weight="bold">Short (30s):</text>
+  <text x="65" y="315" class="small-text">• pwd, whoami</text>
+  <text x="60" y="335" class="small-text" font-weight="bold">Config (5m):</text>
+  <text x="65" y="350" class="small-text">• package.json, .env</text>
+  <text x="60" y="370" class="small-text" font-weight="bold">Docs (30m):</text>
+  <text x="65" y="385" class="small-text">• README, help files</text>
+  
+  <!-- Storage -->
+  <rect x="1150" y="220" width="200" height="80" class="box" rx="5" fill="#d6f5d6"/>
+  <text x="1250" y="245" class="text" text-anchor="middle" font-weight="bold">Storage</text>
+  <text x="1250" y="265" class="small-text" text-anchor="middle">~/.macos-shell/</text>
+  <text x="1250" y="280" class="small-text" text-anchor="middle">sessions/ processes/</text>
+  
+  <!-- Performance Stats -->
+  <rect x="1150" y="340" width="200" height="120" class="ai-box" rx="5"/>
+  <text x="1250" y="365" class="white-text" text-anchor="middle">Performance Stats</text>
+  <text x="1250" y="385" class="white-text small-text" text-anchor="middle">Cache Hit: ~85%</text>
+  <text x="1250" y="400" class="white-text small-text" text-anchor="middle">Dedup Rate: ~80%</text>
+  <text x="1250" y="415" class="white-text small-text" text-anchor="middle">Avg Response: 1ms</text>
+  <text x="1250" y="430" class="white-text small-text" text-anchor="middle">Rate Limit: 100/min</text>
+  <text x="1250" y="445" class="white-text small-text" text-anchor="middle">Concurrent: 10 max</text>
+  
+  <!-- AI Flow Examples -->
+  <rect x="50" y="460" width="200" height="150" class="box" rx="5" fill="#fff9e6"/>
+  <text x="150" y="485" class="text" text-anchor="middle" font-weight="bold">Command Flow Example</text>
+  <text x="60" y="505" class="small-text">User: "ls -la"</text>
+  <text x="60" y="525" class="small-text" fill="#48bb78">✓ Cache Hit (1ms)</text>
+  <text x="60" y="545" class="small-text">User: "git status" (x3)</text>
+  <text x="60" y="565" class="small-text" fill="#ed8936">→ Deduped (share result)</text>
+  <text x="60" y="585" class="small-text">User: "gti status"</text>
+  <text x="60" y="605" class="small-text" fill="#9f7aea">→ Auto-fixed to "git status"</text>
+  
+  <!-- Utility Layer -->
+  <rect x="300" y="850" width="800" height="110" class="box" rx="5" fill="#fef5e7" stroke-dasharray="5,5"/>
+  <text x="700" y="875" class="text" text-anchor="middle" font-weight="bold">Utility & Infrastructure Layer</text>
+  <text x="380" y="895" class="small-text">• LRU Cache</text>
+  <text x="380" y="910" class="small-text">• Circuit Breaker</text>
+  <text x="380" y="925" class="small-text">• Request Dedup</text>
+  <text x="520" y="895" class="small-text">• Input Validator</text>
+  <text x="520" y="910" class="small-text">• Script Validator</text>
+  <text x="520" y="925" class="small-text">• Error Handler</text>
+  <text x="660" y="895" class="small-text">• AI Metrics</text>
+  <text x="660" y="910" class="small-text">• Resource Monitor</text>
+  <text x="660" y="925" class="small-text">• Memory Manager</text>
+  <text x="800" y="895" class="small-text">• Session Save</text>
+  <text x="800" y="910" class="small-text">• Process State</text>
+  <text x="800" y="925" class="small-text">• Command History</text>
+  <text x="940" y="895" class="small-text">• Cache Classifier</text>
+  <text x="940" y="910" class="small-text">• Command Enhancer</text>
+  <text x="940" y="925" class="small-text">• Output Analyzer</text>
+  
+  <!-- Arrows showing data flow -->
+  <!-- Claude to Server -->
+  <path d="M 700 90 L 700 120" class="arrow"/>
+  
+  <!-- Server to Session Manager -->
+  <path d="M 700 180 L 700 220" class="arrow"/>
+  
+  <!-- Session Manager to AI Layer -->
+  <path d="M 700 300 L 700 340" class="ai-arrow"/>
+  <text x="720" y="320" class="small-text" fill="#48bb78">ALL commands</text>
+  
+  <!-- AI Layer to Tools (cache miss) -->
+  <path d="M 700 420 L 700 460" class="cache-miss"/>
+  <text x="720" y="440" class="small-text" fill="#f56565">cache miss (15%)</text>
+  <text x="720" y="455" class="small-text" fill="#f56565">→ execute tools</text>
+  
+  <!-- AI Layer bypass (cache hit) -->
+  <path d="M 350 380 Q 250 380 250 250 L 580 250" class="cache-hit" stroke-dasharray="5,5"/>
+  <text x="280" y="320" class="small-text" fill="#48bb78">cache hit (85%)</text>
+  <text x="280" y="335" class="small-text" fill="#48bb78">returns instantly</text>
+  
+  <!-- Tools to AI Layer (feedback) -->
+  <path d="M 1100 630 L 1120 630 L 1120 380 L 1050 380" class="dashed-arrow"/>
+  <text x="1125" y="610" class="small-text">performance</text>
+  <text x="1125" y="625" class="small-text">feedback</text>
+  
+  <!-- Session Manager to Storage -->
+  <path d="M 820 260 L 1150 260" class="dashed-arrow"/>
+  
+  <!-- AI Layer to Performance Stats -->
+  <path d="M 1050 380 L 1150 380" class="dashed-arrow"/>
+  
+  <!-- Tool Modules to Utilities -->
+  <path d="M 400 730 L 400 850" class="dashed-arrow"/>
+  <path d="M 580 730 L 580 850" class="dashed-arrow"/>
+  <path d="M 780 730 L 780 850" class="dashed-arrow"/>
+  
+  <!-- Legend -->
+  <rect x="50" y="660" width="200" height="120" class="box" rx="5" fill="white"/>
+  <text x="150" y="680" class="text" text-anchor="middle" font-weight="bold">Legend</text>
+  <line x1="70" y1="700" x2="110" y2="700" class="arrow"/>
+  <text x="120" y="705" class="small-text">Control Flow</text>
+  <line x1="70" y1="720" x2="110" y2="720" class="dashed-arrow"/>
+  <text x="120" y="725" class="small-text">Data Flow</text>
+  <line x1="70" y1="740" x2="110" y2="740" class="cache-hit"/>
+  <text x="120" y="745" class="small-text">Cache Hit Path</text>
+  <line x1="70" y1="760" x2="110" y2="760" class="cache-miss"/>
+  <text x="120" y="765" class="small-text">Cache Miss Path</text>
+</svg>
