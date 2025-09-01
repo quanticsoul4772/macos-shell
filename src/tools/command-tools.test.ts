@@ -1,10 +1,10 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerCommandTools } from './command-tools';
-import { SessionManager } from '../session-manager';
-import { BatchExecutor } from '../utils/batch-executor';
-import { CommandExecutor } from './command/command-executor';
-import { AICommandEnhancer } from './command/ai-command-enhancer';
+import { registerCommandTools } from './command-tools.js';
+import { SessionManager } from '../session-manager.js';
+import { BatchExecutor } from '../utils/batch-executor.js';
+import { CommandExecutor } from './command/command-executor.js';
+import { AICommandEnhancer } from './command/ai-command-enhancer.js';
 
 // Mock all the tool registration modules
 jest.mock('./command/environment-tools', () => ({
@@ -25,11 +25,11 @@ jest.mock('./cache-management-tools', () => ({
 jest.mock('./command/command-executor');
 jest.mock('./command/ai-command-enhancer');
 
-import { registerEnvironmentTools } from './command/environment-tools';
-import { registerScriptTools } from './command/script-tools';
-import { registerBatchTools } from './command/batch-tools';
-import { registerNavigationTools } from './command/navigation-tools';
-import { registerCacheManagementTools } from './cache-management-tools';
+import { registerEnvironmentTools } from './command/environment-tools.js';
+import { registerScriptTools } from './command/script-tools.js';
+import { registerBatchTools } from './command/batch-tools.js';
+import { registerNavigationTools } from './command/navigation-tools.js';
+import { registerCacheManagementTools } from './cache-management-tools.js';
 
 describe('Command Tools', () => {
   let mockServer: jest.Mocked<McpServer>;

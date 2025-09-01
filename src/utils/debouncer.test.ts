@@ -1,4 +1,4 @@
-import { Debouncer } from './debouncer';
+import { Debouncer } from './debouncer.js';
 
 // Mock logger with proper structure
 jest.mock('./logger.js', () => {

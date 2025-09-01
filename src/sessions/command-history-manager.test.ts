@@ -1,5 +1,5 @@
-import { CommandHistoryManager } from './command-history-manager';
-import { ShellSession, CommandHistory } from './session-types';
+import { CommandHistoryManager } from './command-history-manager.js';
+import { ShellSession, CommandHistory } from './session-types.js';
 
 describe('CommandHistoryManager', () => {
   let manager: CommandHistoryManager;

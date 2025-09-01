@@ -1,4 +1,4 @@
-import { CircuitBreaker, CircuitState, circuitBreakerRegistry } from './circuit-breaker';
+import { CircuitBreaker, CircuitState, circuitBreakerRegistry } from './circuit-breaker.js';
 import { EventEmitter } from 'events';
 
 // Mock the logger

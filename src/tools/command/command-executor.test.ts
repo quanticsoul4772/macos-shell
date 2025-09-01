@@ -1,10 +1,10 @@
 // Command Executor Test Suite
 // Tests core command execution functionality with proper mocking
 
-import { CommandExecutor } from './command-executor';
-import { SessionManager } from '../../session-manager';
+import { CommandExecutor } from './command-executor.js';
+import { SessionManager } from '../../session-manager.js';
 import { execa } from 'execa';
-import logger from '../../utils/logger';
+import logger from '../../utils/logger.js';
 
 // Mock all external dependencies
 jest.mock('execa');

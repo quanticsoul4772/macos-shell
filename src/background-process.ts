@@ -65,8 +65,20 @@ export class CircularBuffer {
   }
 
   getLines(count?: number, fromLine?: number): OutputLine[] {
-    const lines = count ?? this.buffer.length;
-    const start = fromLine ?? Math.max(0, this.totalLines - lines);
+    // If fromLine is specified, calculate the actual number of lines available from that point
+    let lines: number;
+    let start: number;
+    
+    if (fromLine !== undefined) {
+      // When fromLine is specified, return lines starting from that position
+      start = fromLine;
+      // If count is not specified, return all remaining lines from fromLine
+      lines = count ?? Math.max(0, this.totalLines - fromLine);
+    } else {
+      // When fromLine is not specified, return the last 'count' lines
+      lines = count ?? this.buffer.length;
+      start = Math.max(0, this.totalLines - lines);
+    }
     
     // If requesting lines that have been overwritten
     if (start < this.totalLines - this.buffer.length) {

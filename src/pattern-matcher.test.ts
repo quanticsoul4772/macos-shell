@@ -1,5 +1,5 @@
-import { PatternMatcher, PatternType, createPatternMatcher } from './pattern-matcher';
-import { OutputLine } from './background-process';
+import { PatternMatcher, PatternType, createPatternMatcher } from './pattern-matcher.js';
+import { OutputLine } from './background-process.js';
 import { jest } from '@jest/globals';
 
 describe('PatternMatcher', () => {

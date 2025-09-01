@@ -1,4 +1,4 @@
-import { DuplicateDetector } from './duplicate-detector';
+import { DuplicateDetector } from './duplicate-detector.js';
 
 describe('DuplicateDetector', () => {
     let detector: DuplicateDetector;

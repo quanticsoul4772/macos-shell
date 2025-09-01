@@ -1,7 +1,7 @@
-import { BackgroundProcessManager } from './background-process-manager';
-import { ResourceMonitor } from '../resource-monitor';
-import { SessionPersistence } from './session-persistence';
-import { ShellSession, ProcessStatus, BackgroundProcess } from './session-types';
+import { BackgroundProcessManager } from './background-process-manager.js';
+import { ResourceMonitor } from '../resource-monitor.js';
+import { SessionPersistence } from './session-persistence.js';
+import { ShellSession, ProcessStatus, BackgroundProcess } from './session-types.js';
 import { execa } from 'execa';
 import { v4 as uuidv4 } from 'uuid';
 

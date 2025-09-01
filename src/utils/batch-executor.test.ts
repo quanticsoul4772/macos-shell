@@ -1,7 +1,7 @@
 // Batch Executor Test Suite
 // Tests sequential and parallel batch command execution
 
-import { BatchExecutor, BatchCommand, BatchExecutionResult } from './batch-executor';
+import { BatchExecutor, BatchCommand, BatchExecutionResult } from './batch-executor.js';
 import { execa, ExecaError } from 'execa';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -81,7 +81,7 @@ describe('BatchExecutor', () => {
       expect(executionOrder).toEqual(['echo', 'ls', 'pwd']);
       
       // Verify each result
-      result.results.forEach((res, index) => {
+      result.results.forEach((res: any, index: number) => {
         expect(res.success).toBe(true);
         expect(res.exitCode).toBe(0);
         expect(res.stdout).toContain(commands[index].command);

@@ -1,4 +1,4 @@
-import { RequestDeduplicator, CommandDeduplicator, FileOperationDeduplicator } from './request-deduplicator';
+import { RequestDeduplicator, CommandDeduplicator, FileOperationDeduplicator } from './request-deduplicator.js';
 
 describe('RequestDeduplicator', () => {
   let deduplicator: RequestDeduplicator;
@@ -6,7 +6,7 @@ describe('RequestDeduplicator', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     deduplicator = new RequestDeduplicator({
-      ttl: 1000,
+      ttl: 10000, // Increase TTL to avoid cleanup interference
       maxSize: 3,
     });
   });
@@ -93,17 +93,23 @@ describe('RequestDeduplicator', () => {
   
   describe('Cache Management', () => {
     it('should respect TTL for cached entries', async () => {
+      // Create a deduplicator with short TTL for this test
+      const shortTTLDedup = new RequestDeduplicator({
+        ttl: 1000,
+        maxSize: 10,
+      });
+      
       const fn = jest.fn()
         .mockResolvedValueOnce('result1')
         .mockResolvedValueOnce('result2');
       
       // First execution
-      const result1 = await deduplicator.execute(fn, 'key1');
+      const result1 = await shortTTLDedup.execute(fn, 'key1');
       expect(result1).toBe('result1');
       expect(fn).toHaveBeenCalledTimes(1);
       
       // Within TTL - should return cached
-      const result2 = await deduplicator.execute(fn, 'key1');
+      const result2 = await shortTTLDedup.execute(fn, 'key1');
       expect(result2).toBe('result1');
       expect(fn).toHaveBeenCalledTimes(1);
       
@@ -111,29 +117,37 @@ describe('RequestDeduplicator', () => {
       jest.advanceTimersByTime(1100);
       
       // After TTL - should execute again
-      const result3 = await deduplicator.execute(fn, 'key1');
+      const result3 = await shortTTLDedup.execute(fn, 'key1');
       expect(result3).toBe('result2');
       expect(fn).toHaveBeenCalledTimes(2);
+      
+      shortTTLDedup.dispose();
     });
     
     it('should evict oldest entry when max size reached', async () => {
-      const fn = jest.fn().mockImplementation((key: string) => 
-        Promise.resolve(`result-${key}`)
-      );
+      // Set initial time
+      let currentTime = 1000;
+      jest.spyOn(Date, 'now').mockImplementation(() => currentTime);
       
-      // Fill cache to max size
-      await deduplicator.execute(() => fn('1'), 'key1');
-      // Add small delays to ensure different timestamps
-      jest.advanceTimersByTime(10);
-      await deduplicator.execute(() => fn('2'), 'key2');
-      jest.advanceTimersByTime(10);
-      await deduplicator.execute(() => fn('3'), 'key3');
+      const fn = jest.fn().mockImplementation((key: string) => {
+        // Return immediately resolved promise
+        return Promise.resolve(`result-${key}`);
+      });
+      
+      // Fill cache to max size with different timestamps
+      const result1 = await deduplicator.execute(() => fn('1'), 'key1');
+      currentTime += 10; // Small time advance to ensure different timestamps
+      
+      const result2 = await deduplicator.execute(() => fn('2'), 'key2');
+      currentTime += 10; // Small time advance to ensure different timestamps
+      
+      const result3 = await deduplicator.execute(() => fn('3'), 'key3');
+      currentTime += 10; // Small time advance to ensure different timestamps
       
       expect(deduplicator.size()).toBe(3);
       
-      // Add one more - should evict oldest
-      jest.advanceTimersByTime(10);
-      await deduplicator.execute(() => fn('4'), 'key4');
+      // Add one more - should evict oldest (key1)
+      const result4 = await deduplicator.execute(() => fn('4'), 'key4');
       
       expect(deduplicator.size()).toBe(3);
       expect(deduplicator.has('key1')).toBe(false); // Oldest should be evicted
@@ -143,18 +157,26 @@ describe('RequestDeduplicator', () => {
     });
     
     it('should clean up expired entries periodically', async () => {
+      // Create a deduplicator with short TTL for this test
+      const shortTTLDedup = new RequestDeduplicator({
+        ttl: 1000,
+        maxSize: 10,
+      });
+      
       const fn = jest.fn().mockResolvedValue('result');
       
       // Add some entries
-      await deduplicator.execute(fn, 'key1');
-      await deduplicator.execute(fn, 'key2');
+      await shortTTLDedup.execute(fn, 'key1');
+      await shortTTLDedup.execute(fn, 'key2');
       
-      expect(deduplicator.size()).toBe(2);
+      expect(shortTTLDedup.size()).toBe(2);
       
       // Advance past TTL to trigger cleanup
       jest.advanceTimersByTime(2000);
       
-      expect(deduplicator.size()).toBe(0);
+      expect(shortTTLDedup.size()).toBe(0);
+      
+      shortTTLDedup.dispose();
     });
     
     it('should clear cache on demand', async () => {

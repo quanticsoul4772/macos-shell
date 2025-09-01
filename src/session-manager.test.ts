@@ -1,13 +1,13 @@
 // Session Manager Test Suite
 // Tests session management, history, and background process orchestration
 
-import { SessionManager } from './session-manager';
-import { SessionPersistence } from './sessions/session-persistence';
-import { BackgroundProcessManager } from './sessions/background-process-manager';
-import { CommandHistoryManager } from './sessions/command-history-manager';
-import { ResourceMonitor } from './resource-monitor';
-import { Debouncer } from './utils/debouncer';
-import { ProcessStatus } from './background-process';
+import { SessionManager } from './session-manager.js';
+import { SessionPersistence } from './sessions/session-persistence.js';
+import { BackgroundProcessManager } from './sessions/background-process-manager.js';
+import { CommandHistoryManager } from './sessions/command-history-manager.js';
+import { ResourceMonitor } from './resource-monitor.js';
+import { Debouncer } from './utils/debouncer.js';
+import { ProcessStatus } from './background-process.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // Mock all dependencies

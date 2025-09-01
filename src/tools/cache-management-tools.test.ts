@@ -1,10 +1,10 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerCacheManagementTools, saveLearningRule } from './cache-management-tools';
-import { aiCache } from '../ai-cache';
-import { cacheClassifier, CacheStrategy } from '../ai-cache-classifier';
-import { learningPersistence } from '../learning-persistence';
-import logger from '../utils/logger';
+import { registerCacheManagementTools, saveLearningRule } from './cache-management-tools.js';
+import { aiCache } from '../ai-cache.js';
+import { cacheClassifier, CacheStrategy } from '../ai-cache-classifier.js';
+import { learningPersistence } from '../learning-persistence.js';
+import logger from '../utils/logger.js';
 
 jest.mock('../ai-cache');
 jest.mock('../ai-cache-classifier');

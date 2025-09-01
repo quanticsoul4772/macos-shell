@@ -1,4 +1,4 @@
-import { registerPreflightTools } from './preflight-tools';
+import { registerPreflightTools } from './preflight-tools.js';
 import { jest } from '@jest/globals';
 import { execa } from 'execa';
 import * as fs from 'fs/promises';

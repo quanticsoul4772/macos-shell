@@ -1,4 +1,4 @@
-import { AIErrorHandler } from './ai-error-handler';
+import { AIErrorHandler } from './ai-error-handler.js';
 import * as fs from 'fs/promises';
 
 jest.mock('fs/promises');

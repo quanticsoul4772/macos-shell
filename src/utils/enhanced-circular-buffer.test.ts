@@ -1,5 +1,5 @@
-import { EnhancedCircularBuffer } from './enhanced-circular-buffer';
-import { OutputLine } from '../background-process';
+import { EnhancedCircularBuffer } from './enhanced-circular-buffer.js';
+import { OutputLine } from '../background-process.js';
 
 describe('EnhancedCircularBuffer', () => {
   let buffer: EnhancedCircularBuffer;

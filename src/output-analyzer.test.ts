@@ -1,5 +1,5 @@
-import { OutputAnalyzer, outputAnalyzer } from './output-analyzer';
-import { CacheStrategy } from './ai-cache-classifier';
+import { OutputAnalyzer, outputAnalyzer } from './output-analyzer.js';
+import { CacheStrategy } from './ai-cache-classifier.js';
 import { jest } from '@jest/globals';
 
 describe('OutputAnalyzer', () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerNavigationTools } from './navigation-tools';
-import { SessionManager } from '../../session-manager';
+import { registerNavigationTools } from './navigation-tools.js';
+import { SessionManager } from '../../session-manager.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 

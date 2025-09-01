@@ -1,4 +1,4 @@
-import { InputValidator, validators } from './input-validator';
+import { InputValidator, validators } from './input-validator.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 

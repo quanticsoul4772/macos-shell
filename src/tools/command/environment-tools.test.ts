@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerEnvironmentTools } from './environment-tools';
-import { SessionManager } from '../../session-manager';
+import { registerEnvironmentTools } from './environment-tools.js';
+import { SessionManager } from '../../session-manager.js';
 
 // Mock SessionManager
 jest.mock('../../session-manager');

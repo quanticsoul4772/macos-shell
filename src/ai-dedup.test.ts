@@ -1,4 +1,4 @@
-import { AICommandDedup } from './ai-dedup';
+import { AICommandDedup } from './ai-dedup.js';
 
 describe('AICommandDedup', () => {
   let dedup: AICommandDedup;

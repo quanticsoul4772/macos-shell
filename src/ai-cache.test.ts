@@ -1,5 +1,5 @@
-import { AICommandCache } from './ai-cache';
-import { cacheClassifier, CacheStrategy } from './ai-cache-classifier';
+import { AICommandCache } from './ai-cache.js';
+import { cacheClassifier, CacheStrategy } from './ai-cache-classifier.js';
 import { jest } from '@jest/globals';
 import { EventEmitter } from 'events';
 

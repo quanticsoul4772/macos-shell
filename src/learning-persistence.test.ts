@@ -1,5 +1,5 @@
-import { LearningPersistence, LearnedRule, learningPersistence } from './learning-persistence';
-import { CacheStrategy } from './ai-cache-classifier';
+import { LearningPersistence, LearnedRule, learningPersistence } from './learning-persistence.js';
+import { CacheStrategy } from './ai-cache-classifier.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';

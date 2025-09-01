@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerProcessTools } from './process-tools';
-import { SessionManager } from '../session-manager';
+import { registerProcessTools } from './process-tools.js';
+import { SessionManager } from '../session-manager.js';
 
 // Mock all handler modules
 jest.mock('./helpers/process-handlers', () => ({
@@ -25,11 +25,11 @@ import {
   handleStreamProcessOutput,
   handleKillProcess,
   handleSaveProcessOutput
-} from './helpers/process-handlers';
+} from './helpers/process-handlers.js';
 import {
   handleCleanupOrphans,
   handleKillAllMatching
-} from './helpers/orphan-handlers';
+} from './helpers/orphan-handlers.js';
 
 describe('Process Tools', () => {
   let mockServer: jest.Mocked<McpServer>;

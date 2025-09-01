@@ -30,7 +30,9 @@ describe('Session Tools', () => {
     registerSessionTools(server, sessionManager);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Clean up session manager to ensure test isolation
+    await sessionManager.cleanup();
     jest.restoreAllMocks();
   });
 
@@ -51,14 +53,14 @@ describe('Session Tools', () => {
     it('should create a new session', async () => {
       const tool = registeredTools.get('create_shell_session');
       const result = await tool.handler({
-        name: 'test-session',
+        name: 'session-tools-test-1',
         cwd: '/home/user/project',
         env: { NODE_ENV: 'test' }
       });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toContain('Created session \'test-session\'');
+      expect(result.content[0].text).toContain('Created session \'session-tools-test-1\'');
       expect(result.content[0].text).toContain('Working directory: /home/user/project');
       expect(result.isError).toBeUndefined();
     });
