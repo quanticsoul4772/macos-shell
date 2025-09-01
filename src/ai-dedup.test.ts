@@ -21,45 +21,71 @@ describe('AICommandDedup', () => {
       const promise1 = dedup.execute('ls -la', '/home', executor);
       const promise2 = dedup.execute('ls -la', '/home', executor);
       
+      // No need to advance timers for immediate dedup
       const [result1, result2] = await Promise.all([promise1, promise2]);
       
       expect(result1).toBe('result');
       expect(result2).toBe('result');
       expect(executor).toHaveBeenCalledTimes(1);
+      
+      // Clean up pending timers
+      jest.runAllTimers();
     });
     
     it('should execute different commands separately', async () => {
       const executor1 = jest.fn().mockResolvedValue('result1');
       const executor2 = jest.fn().mockResolvedValue('result2');
       
-      const result1 = await dedup.execute('ls', '/home', executor1);
-      const result2 = await dedup.execute('pwd', '/home', executor2);
+      // Both ls and pwd are high-dedup commands, so they trigger batching
+      const promise1 = dedup.execute('ls', '/home', executor1);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      const result1 = await promise1;
+      
+      const promise2 = dedup.execute('pwd', '/home', executor2);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      const result2 = await promise2;
       
       expect(result1).toBe('result1');
       expect(result2).toBe('result2');
       expect(executor1).toHaveBeenCalledTimes(1);
       expect(executor2).toHaveBeenCalledTimes(1);
+      
+      jest.runAllTimers();
     });
     
     it('should execute same command in different directories', async () => {
       const executor = jest.fn().mockResolvedValue('result');
       
-      await dedup.execute('ls', '/home', executor);
-      await dedup.execute('ls', '/tmp', executor);
+      // ls is a high-dedup command, so it triggers batching
+      const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      await promise1;
+      
+      const promise2 = dedup.execute('ls', '/tmp', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      await promise2;
       
       expect(executor).toHaveBeenCalledTimes(2);
+      jest.runAllTimers();
     });
     
     it('should deduplicate within time window', async () => {
       const executor = jest.fn().mockResolvedValue('result');
       
-      await dedup.execute('ls', '/home', executor);
+      // First execution
+      const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      await promise1;
       
       // Within 10 second window
       jest.advanceTimersByTime(5000);
-      await dedup.execute('ls', '/home', executor);
+      
+      // Second execution should be deduped
+      const promise2 = dedup.execute('ls', '/home', executor);
+      await promise2;
       
       expect(executor).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
     });
     
     it('should not deduplicate after time window expires', async () => {
@@ -67,14 +93,21 @@ describe('AICommandDedup', () => {
         .mockResolvedValueOnce('result1')
         .mockResolvedValueOnce('result2');
       
-      await dedup.execute('ls', '/home', executor);
+      // First execution
+      const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      await promise1;
       
-      // Advance past dedup window
+      // Advance past dedup window (10 seconds)
       jest.advanceTimersByTime(11000);
       
-      await dedup.execute('ls', '/home', executor);
+      // Second execution should not be deduped
+      const promise2 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      await promise2;
       
       expect(executor).toHaveBeenCalledTimes(2);
+      jest.runAllTimers();
     });
   });
   
@@ -82,29 +115,46 @@ describe('AICommandDedup', () => {
     it('should normalize ls command variations', async () => {
       const executor = jest.fn().mockResolvedValue('result');
       
-      await dedup.execute('ls -la', '/home', executor);
-      await dedup.execute('ls -al', '/home', executor); // Different order
-      await dedup.execute('ls  -la', '/home', executor); // Extra space
+      // First execution
+      const promise1 = dedup.execute('ls -la', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise1;
+      
+      // These should all be deduped to the first one
+      const promise2 = dedup.execute('ls -al', '/home', executor); // Different order
+      const promise3 = dedup.execute('ls  -la', '/home', executor); // Extra space
+      
+      await Promise.all([promise2, promise3]);
       
       expect(executor).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
     });
     
     it('should normalize git log variations', async () => {
       const executor = jest.fn().mockResolvedValue('result');
       
+      // git log is not a high-dedup command, so no batch wait needed
       await dedup.execute('git log --oneline -5', '/repo', executor);
       await dedup.execute('git log --oneline -10', '/repo', executor);
       
       expect(executor).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
     });
     
     it('should trim and normalize whitespace', async () => {
       const executor = jest.fn().mockResolvedValue('result');
       
-      await dedup.execute('  ls   -la  ', '/home', executor);
-      await dedup.execute('ls -la', '/home', executor);
+      // First execution with extra whitespace
+      const promise1 = dedup.execute('  ls   -la  ', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise1;
+      
+      // Should be deduped
+      const promise2 = dedup.execute('ls -la', '/home', executor);
+      await promise2;
       
       expect(executor).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
     });
   });
   
@@ -126,6 +176,7 @@ describe('AICommandDedup', () => {
       
       expect(results).toEqual(['result', 'result', 'result']);
       expect(executor).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
     });
     
     it('should not batch non-high-dedup commands', async () => {
@@ -138,6 +189,7 @@ describe('AICommandDedup', () => {
       
       // Should still deduplicate but without batching delay
       expect(executor).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
     });
     
     it('should recognize high-dedup commands', async () => {
@@ -148,11 +200,15 @@ describe('AICommandDedup', () => {
       ];
       
       for (const cmd of highDedupCommands) {
-        await dedup.execute(cmd, '/test', executor);
+        const promise = dedup.execute(cmd, '/test', executor);
+        jest.advanceTimersByTime(100); // Advance past batch wait for each
+        await promise;
+        jest.advanceTimersByTime(11000); // Move past dedup window for next command
       }
       
       // Each should be executed once
       expect(executor).toHaveBeenCalledTimes(highDedupCommands.length);
+      jest.runAllTimers();
     });
   });
   
@@ -161,12 +217,17 @@ describe('AICommandDedup', () => {
       const executor = jest.fn().mockResolvedValue('result');
       
       // Execute same command 3 times
-      await dedup.execute('ls', '/home', executor);
+      const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise1;
+      
       await dedup.execute('ls', '/home', executor);
       await dedup.execute('ls', '/home', executor);
       
       // Execute different command
-      await dedup.execute('pwd', '/home', executor);
+      const promise2 = dedup.execute('pwd', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise2;
       
       const stats = dedup.getStats();
       
@@ -174,12 +235,16 @@ describe('AICommandDedup', () => {
       expect(stats.dedupedCommands).toBe(2);
       expect(stats.savedExecutions).toBe(2);
       expect(stats.dedupRate).toBeCloseTo(50);
+      jest.runAllTimers();
     });
     
     it('should reset statistics', async () => {
       const executor = jest.fn().mockResolvedValue('result');
       
-      await dedup.execute('ls', '/home', executor);
+      const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise1;
+      
       await dedup.execute('ls', '/home', executor);
       
       dedup.resetStats();
@@ -188,6 +253,7 @@ describe('AICommandDedup', () => {
       expect(stats.totalCommands).toBe(0);
       expect(stats.dedupedCommands).toBe(0);
       expect(stats.savedExecutions).toBe(0);
+      jest.runAllTimers();
     });
     
     it('should track current pending commands', async () => {
@@ -196,7 +262,10 @@ describe('AICommandDedup', () => {
       );
       
       const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      
       const promise2 = dedup.execute('pwd', '/tmp', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
       
       let stats = dedup.getStats();
       expect(stats.currentPending).toBe(2);
@@ -222,8 +291,12 @@ describe('AICommandDedup', () => {
       
       dedup.on('dedup:hit', hitListener);
       
-      await dedup.execute('ls', '/home', executor);
-      await dedup.execute('ls', '/home', executor);
+      const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise1;
+      
+      const promise2 = dedup.execute('ls', '/home', executor);
+      await promise2;
       
       expect(hitListener).toHaveBeenCalledWith({
         command: 'ls',
@@ -231,6 +304,7 @@ describe('AICommandDedup', () => {
         waitingCount: 1,
         timeSaved: expect.any(Number),
       });
+      jest.runAllTimers();
     });
     
     it('should track waiting count correctly', async () => {
@@ -242,6 +316,8 @@ describe('AICommandDedup', () => {
       dedup.on('dedup:hit', hitListener);
       
       const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100); // Advance past batch wait
+      
       const promise2 = dedup.execute('ls', '/home', executor);
       const promise3 = dedup.execute('ls', '/home', executor);
       
@@ -255,6 +331,7 @@ describe('AICommandDedup', () => {
       expect(hitListener).toHaveBeenNthCalledWith(2, expect.objectContaining({
         waitingCount: 2,
       }));
+      jest.runAllTimers();
     });
   });
   
@@ -367,16 +444,21 @@ describe('AICommandDedup', () => {
         .mockResolvedValueOnce('result1')
         .mockResolvedValueOnce('result2');
       
-      await dedup.execute('ls', '/home', executor);
+      const promise1 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise1;
       
       // Still in window
       jest.advanceTimersByTime(9000);
-      await dedup.execute('ls', '/home', executor);
+      const promise2 = dedup.execute('ls', '/home', executor);
+      await promise2;
       expect(executor).toHaveBeenCalledTimes(1);
       
       // After window expires
       jest.advanceTimersByTime(2000); // Total 11 seconds
-      await dedup.execute('ls', '/home', executor);
+      const promise3 = dedup.execute('ls', '/home', executor);
+      jest.advanceTimersByTime(100);
+      await promise3;
       expect(executor).toHaveBeenCalledTimes(2);
     });
   });

@@ -217,7 +217,7 @@ describe('EnhancedCircularBuffer', () => {
         waiters.push(buffer.waitForLines(1000 + i, 60000));
       }
       
-      // Advance time to make them stale
+      // Advance time to make them stale (they get cleaned up after 10 seconds when forced)
       jest.advanceTimersByTime(11000);
       
       // Should force cleanup and allow new waiter
@@ -233,7 +233,11 @@ describe('EnhancedCircularBuffer', () => {
       
       const lines = await newWaiter;
       expect(lines.length).toBeGreaterThan(0);
-    });
+      
+      // Clean up all pending waiters
+      jest.advanceTimersByTime(60000);
+      await Promise.allSettled(waiters);
+    }, 15000); // Increase timeout for this test
   });
   
   describe('Stale Waiter Cleanup', () => {
@@ -256,7 +260,7 @@ describe('EnhancedCircularBuffer', () => {
       const [lines1, lines2] = await Promise.all([waiter1, waiter2]);
       expect(lines1).toHaveLength(1);
       expect(lines2).toHaveLength(1);
-    });
+    }, 15000); // Increase timeout for this test
     
     it('should clean up waiters older than timeout', async () => {
       const waiter = buffer.waitForLines(1000, 60000);

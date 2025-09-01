@@ -52,26 +52,28 @@ describe('Session Tools', () => {
 
     it('should create a new session', async () => {
       const tool = registeredTools.get('create_shell_session');
+      const uniqueName = `session-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const result = await tool.handler({
-        name: 'session-tools-test-1',
+        name: uniqueName,
         cwd: '/home/user/project',
         env: { NODE_ENV: 'test' }
       });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toContain('Created session \'session-tools-test-1\'');
+      expect(result.content[0].text).toContain(`Created session '${uniqueName}'`);
       expect(result.content[0].text).toContain('Working directory: /home/user/project');
       expect(result.isError).toBeUndefined();
     });
 
     it('should handle session without optional parameters', async () => {
       const tool = registeredTools.get('create_shell_session');
+      const uniqueName = `minimal-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const result = await tool.handler({
-        name: 'minimal-session'
+        name: uniqueName
       });
 
-      expect(result.content[0].text).toContain('Created session \'minimal-session\'');
+      expect(result.content[0].text).toContain(`Created session '${uniqueName}'`);
       expect(result.isError).toBeUndefined();
     });
 

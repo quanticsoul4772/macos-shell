@@ -136,17 +136,20 @@ describe('RequestDeduplicator', () => {
       
       // Fill cache to max size with different timestamps
       const result1 = await deduplicator.execute(() => fn('1'), 'key1');
-      currentTime += 10; // Small time advance to ensure different timestamps
+      currentTime += 100; // Advance time to ensure different timestamps
       
       const result2 = await deduplicator.execute(() => fn('2'), 'key2');
-      currentTime += 10; // Small time advance to ensure different timestamps
+      currentTime += 100; // Advance time to ensure different timestamps
       
       const result3 = await deduplicator.execute(() => fn('3'), 'key3');
-      currentTime += 10; // Small time advance to ensure different timestamps
+      currentTime += 100; // Advance time to ensure different timestamps
+      
+      // Wait a tick to ensure all promises are fully resolved and entries marked as completed
+      await new Promise(resolve => setImmediate(resolve));
       
       expect(deduplicator.size()).toBe(3);
       
-      // Add one more - should evict oldest (key1)
+      // Add one more - should evict oldest completed entry (key1)
       const result4 = await deduplicator.execute(() => fn('4'), 'key4');
       
       expect(deduplicator.size()).toBe(3);
