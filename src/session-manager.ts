@@ -322,6 +322,9 @@ export class SessionManager {
     // Flush pending saves
     await this.flushPendingSaves();
     
+    // Clear all sessions from memory
+    this.sessions.clear();
+    
     logger.info({ module: 'session-manager', action: 'cleanup' }, 'Session manager cleanup complete');
   }
 

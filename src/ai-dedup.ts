@@ -170,8 +170,10 @@ export class AICommandDedup extends EventEmitter {
   /**
    * Setup periodic cleanup
    */
+  private cleanupTimer?: NodeJS.Timeout;
+
   private setupCleanup(): void {
-    setInterval(() => {
+    this.cleanupTimer = setInterval(() => {
       const now = Date.now();
       for (const [key, pending] of this.pendingCommands.entries()) {
         if (now - pending.timestamp > this.DEDUP_WINDOW_MS * 2) {
@@ -179,6 +181,18 @@ export class AICommandDedup extends EventEmitter {
         }
       }
     }, 30000); // Every 30 seconds
+  }
+
+  /**
+   * Dispose the deduplicator and clean up resources
+   */
+  dispose(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = undefined;
+    }
+    this.pendingCommands.clear();
+    this.removeAllListeners();
   }
 
   /**

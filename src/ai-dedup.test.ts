@@ -9,6 +9,7 @@ describe('AICommandDedup', () => {
   });
   
   afterEach(() => {
+    dedup.dispose();
     jest.clearAllTimers();
     jest.useRealTimers();
   });
@@ -295,7 +296,7 @@ describe('AICommandDedup', () => {
     
     it('should not coalesce non-coalesceable commands', async () => {
       const executor = jest.fn().mockImplementation((cmds) => 
-        cmds.map((c: string) => `result-${c}`)
+        Promise.resolve(cmds.map((c: string) => `result-${c}`))
       );
       
       const commands = [
@@ -312,7 +313,7 @@ describe('AICommandDedup', () => {
     
     it('should handle mixed coalesceable and non-coalesceable commands', async () => {
       const executor = jest.fn().mockImplementation((cmds) => 
-        cmds.map((c: string) => `result-${c}`)
+        Promise.resolve(cmds.map((c: string) => `result-${c}`))
       );
       
       const commands = [
