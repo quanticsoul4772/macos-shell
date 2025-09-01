@@ -158,16 +158,19 @@ export class PatternMatcher {
           matches = line.match(regex);
           isMatch = matches !== null;
           
-          if (isMatch && matches && options?.extractGroups) {
-            captureGroups = {};
-            for (let i = 1; i < matches.length; i++) {
-              if (matches[i] !== undefined) {
-                captureGroups[i.toString()] = matches[i];
-              }
-            }
+          if (isMatch && matches) {
             matchedText = matches[0];
             startIndex = matches.index;
             endIndex = startIndex !== undefined ? startIndex + matches[0].length : undefined;
+            
+            if (options?.extractGroups) {
+              captureGroups = {};
+              for (let i = 1; i < matches.length; i++) {
+                if (matches[i] !== undefined) {
+                  captureGroups[i.toString()] = matches[i];
+                }
+              }
+            }
           }
         } catch (e) {
           throw new Error(`Regex matching failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -282,7 +285,8 @@ export class PatternMatcher {
     
     let regex = this.compiledPatterns.get(key);
     if (!regex) {
-      const flags = caseSensitive ? 'g' : 'gi';
+      // Don't use global flag for single matches to avoid stateful regex issues
+      const flags = caseSensitive ? '' : 'i';
       regex = new RegExp(pattern, flags);
       this.compiledPatterns.set(key, regex);
     }
@@ -329,6 +333,17 @@ export class PatternMatcher {
       if (matches) {
         complexity += matches.length * 20;
       }
+    }
+    
+    // Check for nested quantifiers like (a+)+ which can cause catastrophic backtracking
+    if (/\([^)]*[+*]\)[+*]/.test(pattern)) {
+      complexity += 100; // Very dangerous pattern
+    }
+    
+    // Check for multiple unbounded wildcards in sequence (.*.*)
+    const wildcardCount = (pattern.match(/\.\*/g) || []).length;
+    if (wildcardCount > 1) {
+      complexity += wildcardCount * 15;
     }
     
     // Penalize nested quantifiers

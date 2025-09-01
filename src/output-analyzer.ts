@@ -76,13 +76,25 @@ export class OutputAnalyzer {
       confidence: 0.5
     };
     
+    // Mapping from pattern keys to result fields
+    const fieldMapping: Record<string, keyof AnalysisResult> = {
+      timestamp: 'hasTimestamp',
+      processId: 'hasProcessId',
+      counter: 'hasCounter',
+      fileSize: 'hasFileSize',
+      ipAddress: 'hasIpAddress',
+      port: 'hasPort'
+    };
+    
     // Check each pattern type
     for (const [type, patterns] of Object.entries(this.patterns)) {
       for (const pattern of patterns) {
         if (pattern.test(output)) {
-          const fieldName = `has${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof AnalysisResult;
-          (result as any)[fieldName] = true;
-          result.changeIndicators.push(type);
+          const fieldName = fieldMapping[type];
+          if (fieldName) {
+            (result as any)[fieldName] = true;
+            result.changeIndicators.push(type);
+          }
           break;
         }
       }
