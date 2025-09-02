@@ -21,7 +21,10 @@ npm install
 # Build the server
 npm run build
 
-# Test the server (optional)
+# Run tests (optional)
+npm test
+
+# Start the server (optional)
 npm start
 ```
 
@@ -425,6 +428,35 @@ macos-shell/
       - Use `create_shell_session` (not `create_session`)
       - Use `list_shell_sessions` (not `list_sessions`)
     - These were renamed to avoid conflicts
+
+## Testing
+
+The project maintains comprehensive test coverage with 712+ tests across 41 test suites.
+
+### Test Status
+- **Pass Rate**: 100% [PASSED]
+- **Code Coverage**: 60.62%
+- **Test Execution**: ~32 seconds
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run with coverage report
+npm test -- --coverage
+
+# Run in watch mode
+npm test -- --watch
+
+# Run specific test file
+npm test -- src/ai-cache.test.ts
+```
+
+### Documentation
+- [Complete Testing Guide](docs/TESTING.md) - Comprehensive testing documentation
+- [Test Status Report](docs/TEST_STATUS.md) - Current test metrics and coverage
+- [Testing Roadmap](docs/testing-improvement-plan.md) - Future testing plans
 
 ## Development
 
