@@ -22,6 +22,8 @@ import { registerPreflightTools } from './tools/preflight-tools.js';
 import { startMonitoring } from './ai-monitor.js';
 import { initializeLogger, getLogger, LogLevel } from './utils/logger.js';
 import { learningPersistence } from './learning-persistence.js';
+import { initEmbeddingConfig, isEmbeddingEnabled, getEmbeddingConfig } from './config/embedding-config.js';
+import { getEmbeddingService } from './services/embedding-service.js';
 
 
 // Initialize logger
@@ -42,6 +44,31 @@ logger.info('Starting macOS Shell MCP Server v3.1.1');
     logger.info('Learning persistence initialized');
   } catch (error) {
     logger.error('Failed to initialize learning persistence', error as Error);
+  }
+})();
+
+// Initialize embedding services
+(async () => {
+  try {
+    initEmbeddingConfig();
+    if (isEmbeddingEnabled()) {
+      const embeddingService = getEmbeddingService();
+      if (embeddingService.isReady()) {
+        const config = getEmbeddingConfig();
+        logger.info('Embedding services initialized', {
+          provider: config.provider,
+          model: config.model,
+          dimension: config.outputDimension,
+          cacheEnabled: config.cacheEnabled,
+        });
+      } else {
+        logger.warn('Embedding service not ready - check VOYAGE_API_KEY');
+      }
+    } else {
+      logger.info('Embedding services disabled (opt-in via VOYAGE_API_KEY or EMBEDDINGS_ENABLED=true)');
+    }
+  } catch (error) {
+    logger.error('Failed to initialize embedding services', error as Error);
   }
 })();
 
