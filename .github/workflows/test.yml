@@ -58,9 +58,9 @@ jobs:
       
       - name: Run ESLint
         run: npm run lint || true
-      
-      - name: Check TypeScript
-        run: npx tsc --noEmit
+
+      - name: Type Safety Check
+        run: npm run typecheck
 
   integration:
     runs-on: macos-latest
