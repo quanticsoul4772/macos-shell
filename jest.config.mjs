@@ -14,11 +14,14 @@ export default {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       useESM: true,
+      isolatedModules: true,
       tsconfig: {
         module: 'esnext',
         target: 'es2022',
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
+        skipLibCheck: true,
+        downlevelIteration: true,
       }
     }]
   },

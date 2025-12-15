@@ -9,7 +9,9 @@
     "strict": true,
     "skipLibCheck": true,
     "allowJs": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "build", "coverage", "test"]

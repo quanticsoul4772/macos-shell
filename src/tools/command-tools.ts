@@ -3,6 +3,8 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import type { ServerRequest, ServerNotification } from "@modelcontextprotocol/sdk/types.js";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { SessionManager } from '../session-manager.js';
 import { BatchExecutor } from '../utils/batch-executor.js';
 import { CommandExecutor } from './command/command-executor.js';
@@ -35,7 +37,8 @@ export function registerCommandTools(
       maxOutputLines: z.number().optional().default(100).describe("Maximum lines of stdout to return (default: 100)"),
       maxErrorLines: z.number().optional().default(50).describe("Maximum lines of stderr to return (default: 50)")
     },
-    async ({ command, args, session: sessionName, cwd, env, timeout, maxOutputLines, maxErrorLines }, extra?: any) => {
+    async (params, extra?: RequestHandlerExtra<ServerRequest, ServerNotification>) => {
+      const { command, args, session: sessionName, cwd, env, timeout, maxOutputLines, maxErrorLines } = params;
       // Import progress tracking utilities
       const { ProgressTracker, ShellProgressReporter, extractToolContext } = await import('../utils/progress-tracker.js');
 
