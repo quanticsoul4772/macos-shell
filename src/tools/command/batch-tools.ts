@@ -24,7 +24,7 @@ export function registerBatchTools(
     }
   );
 
-  // Batch execute tool - delegate to BatchExecutor
+  // Batch execute tool with SDK 1.18.0 progress tracking
   server.tool(
     "batch_execute",
     {
@@ -40,9 +40,48 @@ export function registerBatchTools(
       session: z.string().optional(),
       timeout: z.number().default(30000)
     },
-    async (params) => {
+    async (params, extra?: any) => {
+      // Import progress tracking utilities
+      const { ProgressTracker, BatchProgressReporter, BatchStage, extractToolContext } = await import('../../utils/progress-tracker.js');
+
+      // Extract SDK 1.18.0 metadata
+      const context = extractToolContext(extra, server);
+
+      // Create progress tracker for batch operations
+      const progressTracker = context.progressToken && context.server
+        ? new ProgressTracker(context.server, context.progressToken, context.requestId)
+        : null;
+
+      const progressReporter = progressTracker
+        ? new BatchProgressReporter(progressTracker, params.commands.length)
+        : null;
+
       try {
-        const result = await batchExecutor.execute(params);
+        await progressReporter?.reportStage(BatchStage.INIT);
+        await progressReporter?.reportStage(BatchStage.VALIDATION);
+
+        // Hook into batch executor to report progress
+        const originalExecute = batchExecutor.execute.bind(batchExecutor);
+        const result = await originalExecute({
+          ...params,
+          onCommandStart: async (index: number, command: string) => {
+            await progressReporter?.reportCommandProgress(index, command, 'starting');
+          },
+          onCommandComplete: async (index: number, command: string) => {
+            await progressReporter?.reportCommandProgress(index, command, 'completed');
+          },
+          onCommandError: async (index: number, command: string) => {
+            await progressReporter?.reportCommandProgress(index, command, 'failed');
+          }
+        } as any);
+
+        await progressReporter?.reportStage(BatchStage.COLLECTING);
+
+        // Count successes and failures
+        const successCount = result.results.filter(r => r.success).length;
+        const failureCount = result.results.filter(r => !r.success).length;
+
+        await progressReporter?.complete(successCount, failureCount);
         
         return {
           content: [

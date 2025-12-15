@@ -14,7 +14,7 @@ import { registerNavigationTools } from './command/navigation-tools.js';
 import { registerCacheManagementTools } from './cache-management-tools.js';
 
 export function registerCommandTools(
-  server: McpServer, 
+  server: McpServer,
   sessionManager: SessionManager,
   batchExecutor: BatchExecutor
 ) {
@@ -22,7 +22,7 @@ export function registerCommandTools(
   const commandExecutor = new CommandExecutor(sessionManager);
   const aiEnhancer = new AICommandEnhancer(commandExecutor);
 
-  // Register main run_command tool with AI enhancements
+  // Register main run_command tool with AI enhancements and SDK 1.18.0 features
   server.tool(
     "run_command",
     {
@@ -35,7 +35,24 @@ export function registerCommandTools(
       maxOutputLines: z.number().optional().default(100).describe("Maximum lines of stdout to return (default: 100)"),
       maxErrorLines: z.number().optional().default(50).describe("Maximum lines of stderr to return (default: 50)")
     },
-    async ({ command, args, session: sessionName, cwd, env, timeout, maxOutputLines, maxErrorLines }) => {
+    async ({ command, args, session: sessionName, cwd, env, timeout, maxOutputLines, maxErrorLines }, extra?: any) => {
+      // Import progress tracking utilities
+      const { ProgressTracker, ShellProgressReporter, extractToolContext } = await import('../utils/progress-tracker.js');
+
+      // Extract SDK 1.18.0 metadata
+      const context = extractToolContext(extra, server);
+
+      // Create progress tracker
+      const progressTracker = context.progressToken && context.server
+        ? new ProgressTracker(context.server, context.progressToken, context.requestId)
+        : null;
+
+      const progressReporter = progressTracker
+        ? new ShellProgressReporter(progressTracker, timeout)
+        : null;
+
+      // Report command start
+      await progressReporter?.reportStart(command);
       const session = await sessionManager.getSession(sessionName);
       
       if (!session) {
@@ -68,6 +85,9 @@ export function registerCommandTools(
         maxErrorLines
       });
 
+      // Report command completion
+      await progressReporter?.reportComplete(result.exitCode);
+
       // Build compact response object
       const response: any = {
         stdout: result.stdout,
@@ -91,6 +111,11 @@ export function registerCommandTools(
       }
       if (result.error) {
         response.error = result.error;
+      }
+
+      // Add request ID if available for correlation
+      if (context.requestId) {
+        response.requestId = context.requestId;
       }
 
       return {

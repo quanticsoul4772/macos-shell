@@ -103,7 +103,9 @@ describe('Batch Tools', () => {
       const result = await tool.handler(params);
 
       expect(result.isError).toBeUndefined();
-      expect(batchExecutor.execute).toHaveBeenCalledWith(params);
+      expect(batchExecutor.execute).toHaveBeenCalledWith(
+        expect.objectContaining(params)
+      );
       
       const response = JSON.parse(result.content[0].text);
       expect(response.results).toHaveLength(2);
@@ -126,7 +128,9 @@ describe('Batch Tools', () => {
       const result = await tool.handler(params);
 
       expect(result.isError).toBeUndefined();
-      expect(batchExecutor.execute).toHaveBeenCalledWith(params);
+      expect(batchExecutor.execute).toHaveBeenCalledWith(
+        expect.objectContaining(params)
+      );
     });
 
     it('should handle execution errors', async () => {

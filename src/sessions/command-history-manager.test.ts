@@ -290,4 +290,167 @@ describe('CommandHistoryManager', () => {
       expect(mockSession.history).toHaveLength(0);
     });
   });
+
+  describe('exportHistory', () => {
+    beforeEach(() => {
+      mockSession.history = [
+        {
+          command: 'echo',
+          args: ['hello', 'world'],
+          exitCode: 0,
+          stdout: 'hello world',
+          stderr: '',
+          startTime: new Date('2024-01-01T12:00:00Z'),
+          duration: 50
+        },
+        {
+          command: 'ls',
+          args: ['-la'],
+          exitCode: 1,
+          stdout: '',
+          stderr: 'Permission denied',
+          startTime: new Date('2024-01-01T12:01:00Z'),
+          duration: 100
+        }
+      ];
+    });
+
+    it('should export history as JSON', () => {
+      const exported = manager.exportHistory(mockSession, 'json');
+      const parsed = JSON.parse(exported);
+
+      expect(parsed).toHaveLength(2);
+      expect(parsed[0].command).toBe('echo');
+      expect(parsed[1].command).toBe('ls');
+    });
+
+    it('should export history as text format', () => {
+      const exported = manager.exportHistory(mockSession, 'text');
+
+      expect(exported).toContain('2024-01-01T12:00:00');
+      expect(exported).toContain('echo hello world');
+      expect(exported).toContain('SUCCESS');
+      expect(exported).toContain('50ms');
+      expect(exported).toContain('FAILED (1)');
+      expect(exported).toContain('100ms');
+    });
+
+    it('should export history as bash format', () => {
+      const exported = manager.exportHistory(mockSession, 'bash');
+
+      expect(exported).toContain('# 2024-01-01T12:00:00');
+      expect(exported).toContain('echo hello world');
+      expect(exported).toContain('# 2024-01-01T12:01:00');
+      expect(exported).toContain('ls -la');
+    });
+
+    it('should throw error for unsupported format', () => {
+      expect(() => {
+        manager.exportHistory(mockSession, 'invalid' as any);
+      }).toThrow('Unsupported format: invalid');
+    });
+  });
+
+  describe('importHistory', () => {
+    it('should import history from JSON format', () => {
+      const jsonData = JSON.stringify([
+        {
+          command: 'git',
+          args: ['status'],
+          exitCode: 0,
+          stdout: 'On branch main',
+          stderr: '',
+          startTime: '2024-01-01T10:00:00Z',
+          duration: 75
+        },
+        {
+          command: 'npm',
+          args: ['test'],
+          exitCode: 0,
+          stdout: 'Tests passed',
+          stderr: '',
+          startTime: '2024-01-01T10:05:00Z',
+          duration: 2000
+        }
+      ]);
+
+      const imported = manager.importHistory(mockSession, jsonData, 'json');
+
+      expect(imported).toBe(2);
+      expect(mockSession.history).toHaveLength(2);
+      expect(mockSession.history[0].command).toBe('git');
+      expect(mockSession.history[1].command).toBe('npm');
+    });
+
+    it('should import history from bash format', () => {
+      const bashData = `# 2024-01-01T10:00:00Z
+git status
+# 2024-01-01T10:05:00Z
+npm test`;
+
+      const imported = manager.importHistory(mockSession, bashData, 'bash');
+
+      expect(imported).toBe(2);
+      expect(mockSession.history).toHaveLength(2);
+      expect(mockSession.history[0].command).toBe('git');
+      expect(mockSession.history[0].args).toEqual(['status']);
+      expect(mockSession.history[1].command).toBe('npm');
+      expect(mockSession.history[1].args).toEqual(['test']);
+    });
+
+    it('should handle bash format with invalid timestamps', () => {
+      const bashData = `# invalid-timestamp
+echo test
+# 2024-01-01T10:00:00Z
+ls -la`;
+
+      const imported = manager.importHistory(mockSession, bashData, 'bash');
+
+      expect(imported).toBe(2);
+      expect(mockSession.history).toHaveLength(2);
+    });
+
+    it('should handle bash format with empty lines', () => {
+      const bashData = `# 2024-01-01T10:00:00Z
+echo test
+
+# 2024-01-01T10:05:00Z
+
+ls -la`;
+
+      const imported = manager.importHistory(mockSession, bashData, 'bash');
+
+      expect(imported).toBe(2);
+    });
+
+    it('should handle JSON with missing optional fields', () => {
+      const jsonData = JSON.stringify([
+        {
+          command: 'test',
+          startTime: '2024-01-01T10:00:00Z'
+        }
+      ]);
+
+      const imported = manager.importHistory(mockSession, jsonData, 'json');
+
+      expect(imported).toBe(1);
+      expect(mockSession.history[0].args).toEqual([]);
+      expect(mockSession.history[0].exitCode).toBeNull();
+      expect(mockSession.history[0].stdout).toBe('');
+    });
+
+    it('should throw error for invalid JSON', () => {
+      expect(() => {
+        manager.importHistory(mockSession, 'invalid json{', 'json');
+      }).toThrow();
+    });
+
+    it('should return 0 for non-array JSON', () => {
+      const jsonData = JSON.stringify({ notAnArray: true });
+
+      const imported = manager.importHistory(mockSession, jsonData, 'json');
+
+      expect(imported).toBe(0);
+    });
+  });
 });
