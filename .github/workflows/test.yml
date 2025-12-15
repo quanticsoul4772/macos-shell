@@ -87,10 +87,15 @@ jobs:
         
       - name: Test MCP server startup
         run: |
-          timeout 5 npm start || exit_code=$?
-          if [ "$exit_code" = "124" ]; then
-            echo "Server started successfully (timeout expected)"
+          npm start > /tmp/server.log 2>&1 &
+          SERVER_PID=$!
+          sleep 5
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "Server started successfully and is running"
+            kill $SERVER_PID
+            exit 0
           else
-            echo "Server failed to start"
+            echo "Server failed to start or crashed"
+            cat /tmp/server.log
             exit 1
           fi
