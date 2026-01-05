@@ -131,15 +131,12 @@ export class VectorStorage {
 
   /**
    * Insert or update a document with its embedding
+   * FAIL-FAST: Assumes storage is initialized (would have thrown in constructor)
    */
   public async upsert(doc: VectorDocument): Promise<void> {
-    if (!this.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
-
     if (doc.embedding.length !== this.dimension) {
       throw new Error(
-        `Embedding dimension mismatch: expected ${this.dimension}, got ${doc.embedding.length}`
+        `FATAL: Embedding dimension mismatch: expected ${this.dimension}, got ${doc.embedding.length}`
       );
     }
 
@@ -185,14 +182,11 @@ export class VectorStorage {
 
   /**
    * Batch insert/update documents
+   * FAIL-FAST: Assumes storage is initialized (would have thrown in constructor)
    */
   public async upsertBatch(docs: VectorDocument[]): Promise<void> {
-    if (!this.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
-
     if (docs.length === 0) {
-      return;
+      throw new Error('FATAL: upsertBatch called with empty docs array');
     }
 
     try {
@@ -239,6 +233,7 @@ export class VectorStorage {
 
   /**
    * Search for similar vectors using cosine similarity
+   * FAIL-FAST: Assumes storage is initialized (would have thrown in constructor)
    */
   public search(
     queryEmbedding: number[],
@@ -248,13 +243,9 @@ export class VectorStorage {
       filter?: Record<string, any>;
     }
   ): SearchResult[] {
-    if (!this.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
-
     if (queryEmbedding.length !== this.dimension) {
       throw new Error(
-        `Query embedding dimension mismatch: expected ${this.dimension}, got ${queryEmbedding.length}`
+        `FATAL: Query embedding dimension mismatch: expected ${this.dimension}, got ${queryEmbedding.length}`
       );
     }
 
@@ -266,17 +257,21 @@ export class VectorStorage {
       // cosine distance = 1 - cosine similarity
       // So: similarity = 1 - distance
       const stmt = this.db.prepare(`
+        WITH vss_results AS (
+          SELECT rowid, distance
+          FROM ${this.tableName}_vss
+          WHERE vss_search(embedding, ?)
+          LIMIT ?
+        )
         SELECT
           d.id,
           d.content,
           d.metadata,
           d.timestamp,
           v.distance
-        FROM ${this.tableName}_vss v
+        FROM vss_results v
         INNER JOIN ${this.tableName} d ON d.rowid = v.rowid
-        WHERE vss_search(v.embedding, ?)
         ORDER BY v.distance ASC
-        LIMIT ?
       `);
 
       const rows = stmt.all(JSON.stringify(queryEmbedding), limit * 2) as Array<{
@@ -286,6 +281,13 @@ export class VectorStorage {
         timestamp: number;
         distance: number;
       }>;
+
+      // DEBUG: Log raw VSS results
+      logger.info('VSS raw results', {
+        rowCount: rows.length,
+        sampleDistances: rows.slice(0, 3).map(r => r.distance.toFixed(4)),
+        sampleIds: rows.slice(0, 3).map(r => r.id.substring(0, 30)),
+      });
 
       // Convert distance to similarity and filter
       const results: SearchResult[] = rows
@@ -301,6 +303,14 @@ export class VectorStorage {
         })
         .filter(result => result.similarity >= minSimilarity)
         .slice(0, limit);
+
+      // DEBUG: Log filtering results
+      logger.info('VSS filtering', {
+        beforeFilter: rows.length,
+        afterFilter: results.length,
+        minSimilarity,
+        sampleSimilarities: rows.slice(0, 3).map(r => (1 - r.distance).toFixed(4)),
+      });
 
       logger.debug('Vector search completed', {
         queryDimension: queryEmbedding.length,
@@ -321,11 +331,9 @@ export class VectorStorage {
 
   /**
    * Get document by ID
+   * FAIL-FAST: Assumes storage is initialized (would have thrown in constructor)
    */
   public get(id: string): VectorDocument | null {
-    if (!this.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
 
     try {
       const stmt = this.db.prepare(`
@@ -362,11 +370,9 @@ export class VectorStorage {
 
   /**
    * Delete document by ID
+   * FAIL-FAST: Assumes storage is initialized (would have thrown in constructor)
    */
   public delete(id: string): boolean {
-    if (!this.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
 
     try {
       const transaction = this.db.transaction(() => {
@@ -394,11 +400,9 @@ export class VectorStorage {
 
   /**
    * Get storage statistics
+   * FAIL-FAST: Assumes storage is initialized (would have thrown in constructor)
    */
   public getStats() {
-    if (!this.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
 
     try {
       const countStmt = this.db.prepare(`SELECT COUNT(*) as count FROM ${this.tableName}`);
@@ -425,11 +429,9 @@ export class VectorStorage {
 
   /**
    * Clear all documents (dangerous!)
+   * FAIL-FAST: Assumes storage is initialized (would have thrown in constructor)
    */
   public clear(): void {
-    if (!this.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
 
     try {
       const transaction = this.db.transaction(() => {

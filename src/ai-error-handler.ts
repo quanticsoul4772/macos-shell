@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { getErrorKnowledgeBase } from './services/error-knowledge-base.js';
 
 /**
  * AI-Optimized Error Handler
@@ -25,6 +26,7 @@ interface ErrorStats {
 
 export class AIErrorHandler extends EventEmitter {
   private errorPatterns: ErrorPattern[] = [];
+  private errorKnowledgeBase = getErrorKnowledgeBase();
   private stats: ErrorStats = {
     totalErrors: 0,
     recoveredErrors: 0,
@@ -39,17 +41,47 @@ export class AIErrorHandler extends EventEmitter {
 
   /**
    * Handle command error with AI intelligence
+   * Includes semantic error matching from knowledge base
    */
   async handle(
-    error: any, 
+    error: any,
     context: { command: string; cwd: string; attempt: number }
-  ): Promise<{ shouldRetry: boolean; correctedCommand?: string; delay?: number }> {
+  ): Promise<{ shouldRetry: boolean; correctedCommand?: string; delay?: number; semanticSolutions?: any[] }> {
     this.stats.totalErrors++;
-    
+
     const errorStr = error.toString();
     const errorType = this.classifyError(errorStr);
     this.stats.commonErrors.set(errorType, (this.stats.commonErrors.get(errorType) || 0) + 1);
-    
+
+    // SEMANTIC ERROR MATCHING: Find similar errors from knowledge base
+    let semanticSolutions: any[] = [];
+    try {
+      if (this.errorKnowledgeBase.getStats().initialized) {
+        const similarErrors = await this.errorKnowledgeBase.findSimilarErrors(errorStr, {
+          limit: 3,
+          minSimilarity: 0.6,
+        });
+
+        if (similarErrors.length > 0) {
+          semanticSolutions = similarErrors.map(err => ({
+            error: err.error,
+            category: err.category,
+            solution: err.solution,
+            severity: err.severity,
+          }));
+
+          this.emit('error:semantic-match', {
+            error: errorStr.substring(0, 100),
+            matches: semanticSolutions.length,
+            topMatch: similarErrors[0].error,
+          });
+        }
+      }
+    } catch (semanticError) {
+      // Non-blocking: Continue with pattern matching if semantic search fails
+      this.emit('error:semantic-search-failed', { error: semanticError });
+    }
+
     // Find matching error pattern
     for (const pattern of this.errorPatterns) {
       if (pattern.pattern.test(errorStr)) {
@@ -65,10 +97,11 @@ export class AIErrorHandler extends EventEmitter {
                 original: context.command, 
                 corrected: correction 
               });
-              return { 
-                shouldRetry: true, 
+              return {
+                shouldRetry: true,
                 correctedCommand: correction,
-                delay: pattern.delay 
+                delay: pattern.delay,
+                semanticSolutions,
               };
             }
           } catch (e) {
@@ -78,16 +111,20 @@ export class AIErrorHandler extends EventEmitter {
         
         // Simple retry logic
         if (pattern.retry && context.attempt < pattern.maxRetries) {
-          return { 
-            shouldRetry: true, 
-            delay: pattern.delay * Math.pow(2, context.attempt - 1) // Exponential backoff
+          return {
+            shouldRetry: true,
+            delay: pattern.delay * Math.pow(2, context.attempt - 1), // Exponential backoff
+            semanticSolutions,
           };
         }
       }
     }
     
     this.stats.failedRecoveries++;
-    return { shouldRetry: false };
+    return {
+      shouldRetry: false,
+      semanticSolutions,
+    };
   }
 
   /**

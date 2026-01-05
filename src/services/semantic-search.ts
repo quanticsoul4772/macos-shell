@@ -37,19 +37,13 @@ export class SemanticSearch {
 
   /**
    * Index a single document for semantic search
+   * FAIL-FAST: Assumes services are initialized (would have thrown on server startup)
    */
   public async index(
     id: string,
     content: string,
     options?: IndexOptions
   ): Promise<void> {
-    if (!this.embeddingService.isReady()) {
-      throw new Error('Embedding service not initialized. Set VOYAGE_API_KEY environment variable.');
-    }
-
-    if (!this.vectorStorage.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
 
     try {
       // Generate embedding
@@ -86,21 +80,14 @@ export class SemanticSearch {
 
   /**
    * Index multiple documents in batch
+   * FAIL-FAST: Assumes services are initialized (would have thrown on server startup)
    */
   public async indexBatch(
     documents: Array<{ id: string; content: string; metadata?: Record<string, any> }>,
     options?: IndexOptions
   ): Promise<void> {
-    if (!this.embeddingService.isReady()) {
-      throw new Error('Embedding service not initialized. Set VOYAGE_API_KEY environment variable.');
-    }
-
-    if (!this.vectorStorage.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
-
     if (documents.length === 0) {
-      return;
+      throw new Error('FATAL: indexBatch called with empty documents array');
     }
 
     try {
@@ -143,18 +130,12 @@ export class SemanticSearch {
 
   /**
    * Search for similar documents using semantic similarity
+   * FAIL-FAST: Assumes services are initialized (would have thrown on server startup)
    */
   public async search(
     query: string,
     options?: SearchOptions
   ): Promise<SemanticSearchResult[]> {
-    if (!this.embeddingService.isReady()) {
-      throw new Error('Embedding service not initialized. Set VOYAGE_API_KEY environment variable.');
-    }
-
-    if (!this.vectorStorage.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
 
     try {
       const startTime = Date.now();
@@ -163,6 +144,14 @@ export class SemanticSearch {
       const embeddingResult = await this.embeddingService.embed(query, {
         inputType: 'query',
         excludeCheck: true, // Allow searching for sensitive patterns
+      });
+
+      // DEBUG: Log embedding details
+      logger.info('Query embedding generated', {
+        query: query.substring(0, 50),
+        embeddingLength: embeddingResult.embedding.length,
+        firstValues: embeddingResult.embedding.slice(0, 3),
+        cached: embeddingResult.cached,
       });
 
       // Search vector storage
@@ -198,23 +187,17 @@ export class SemanticSearch {
 
   /**
    * Get document by ID
+   * FAIL-FAST: Assumes storage is initialized (would have thrown on server startup)
    */
   public get(id: string): VectorDocument | null {
-    if (!this.vectorStorage.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
-
     return this.vectorStorage.get(id);
   }
 
   /**
    * Delete document by ID
+   * FAIL-FAST: Assumes storage is initialized (would have thrown on server startup)
    */
   public delete(id: string): boolean {
-    if (!this.vectorStorage.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
-
     return this.vectorStorage.delete(id);
   }
 
@@ -240,19 +223,17 @@ export class SemanticSearch {
 
   /**
    * Check if semantic search is ready
+   * FAIL-FAST: Always returns true (services throw on construction if not ready)
    */
   public isReady(): boolean {
-    return this.embeddingService.isReady() && this.vectorStorage.isReady();
+    return true;
   }
 
   /**
    * Clear all indexed documents
+   * FAIL-FAST: Assumes storage is initialized (would have thrown on server startup)
    */
   public clear(): void {
-    if (!this.vectorStorage.isReady()) {
-      throw new Error('Vector storage not initialized');
-    }
-
     this.vectorStorage.clear();
     logger.info('All indexed documents cleared');
   }

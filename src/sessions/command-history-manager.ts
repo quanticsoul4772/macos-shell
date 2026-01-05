@@ -7,31 +7,47 @@ import {
   PERSISTENCE_CONFIG
 } from './session-types.js';
 import { getLogger } from '../utils/logger.js';
+import { getCommandIndexingService } from '../services/command-indexing-service.js';
 
 const logger = getLogger('command-history');
 
 export class CommandHistoryManager {
+  private commandIndexing = getCommandIndexingService();
+
   /**
    * Add a command to session history
+   * AUTOMATIC INDEXING: Indexes command with semantic embeddings
    */
   addToHistory(session: ShellSession, history: CommandHistory): void {
     session.history.push(history);
-    
+
     // Keep only last N commands based on limit
     if (session.history.length > PERSISTENCE_CONFIG.historyLimit) {
       session.history = session.history.slice(-PERSISTENCE_CONFIG.historyLimit);
     }
-    
+
     // Update last used timestamp
     session.lastUsed = new Date();
-    
-    logger.debug({ 
-      module: 'command-history', 
-      action: 'add-history', 
+
+    logger.debug({
+      module: 'command-history',
+      action: 'add-history',
       sessionId: session.id,
       command: history.command,
-      exitCode: history.exitCode 
+      exitCode: history.exitCode
     }, `Added command to history: ${history.command}`);
+
+    // AUTOMATIC INDEXING: Index command with embeddings (async, non-blocking)
+    this.commandIndexing.indexCommand(session.id, history, session.cwd)
+      .catch(error => {
+        logger.error('FATAL: Failed to index command', {
+          sessionId: session.id,
+          command: history.command.substring(0, 50),
+          error: error.message,
+        });
+        // Fail-fast: Rethrow to make indexing failures visible
+        throw error;
+      });
   }
 
   /**

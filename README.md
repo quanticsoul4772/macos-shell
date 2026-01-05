@@ -59,7 +59,9 @@ Restart Claude Desktop after adding the configuration.
 - **Command History**: Track executed commands with timing and output
 - **Script Execution**: Run multi-line shell scripts
 - **Background Processes**: Run processes in the background with output capture
-- **Error Handling**: Error reporting with exit codes
+- **Semantic Search**: AI-powered search over command history, documentation, and error solutions using Voyage AI embeddings
+- **Smart Recommendations**: Get command suggestions based on intent and historical success patterns
+- **Error Handling**: Error reporting with exit codes and intelligent error solution lookup
 
 ### Caching and Performance
 
@@ -91,7 +93,7 @@ Restart Claude Desktop after adding the configuration.
 - Tracks cache hit rate, deduplication rate, error recovery
 - Shows command patterns for optimization
 
-## Available Tools (35 Total)
+## Available Tools (41 Total)
 
 ### Command Execution (3 tools)
 - **`run_command`** - Execute shell commands
@@ -243,6 +245,54 @@ Restart Claude Desktop after adding the configuration.
   - Parameters: `command`
   - Returns: Cache strategy, TTL, reason, and analysis
 
+### Semantic Search Tools (6 tools)
+
+AI-powered semantic search using Voyage AI embeddings and vector similarity search. **Requires `VOYAGE_API_KEY`** in environment.
+
+- **`semantic_command_search`** - Search command history by intent, not exact text
+  - Parameters: `query`, `limit?`, `min_similarity?`, `session?`
+  - Returns: Commands semantically similar to query with context and success metrics
+  - Example: `{"query": "deploy to production", "limit": 5}`
+
+- **`search_documentation`** - Search command documentation using semantic similarity
+  - Parameters: `query`, `limit?`, `command_filter?`
+  - Returns: Relevant command documentation with usage examples
+  - Example: `{"query": "how to list files", "command_filter": "ls"}`
+
+- **`recommend_commands`** - Get command suggestions based on intent and historical patterns
+  - Parameters: `intent`, `max_recommendations?`, `min_confidence?`, `session?`
+  - Returns: Recommended commands with confidence scores and reasoning
+  - Example: `{"intent": "fix database connection", "max_recommendations": 3}`
+
+- **`error_solution_lookup`** - Find solutions for error messages from knowledge base
+  - Parameters: `error_message`, `limit?`, `min_similarity?`
+  - Returns: Similar errors with known solutions and severity
+  - Example: `{"error_message": "EADDRINUSE: address already in use"}`
+
+- **`analyze_output`** - Extract patterns, insights, and suggestions from command output
+  - Parameters: `command`, `stdout`, `stderr?`, `exit_code`, `duration_ms?`, `cwd?`
+  - Returns: Summary, extracted patterns (URLs, paths, errors), actionable items
+  - Example: Analyze test output to identify failures and suggest fixes
+
+- **`semantic_search_stats`** - Get statistics about semantic search system
+  - Parameters: None
+  - Returns: Command count, cache hit rate, latency, initialization status
+
+**📖 Full documentation**: [Semantic Search Features](docs/SEMANTIC_SEARCH.md)
+
+**Configuration**: Add to `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "macos-shell": {
+      "env": {
+        "VOYAGE_API_KEY": "pa-YOUR-VOYAGE-API-KEY-HERE"
+      }
+    }
+  }
+}
+```
+
 ## SSH Guidelines
 
 ### Session Management
@@ -347,8 +397,21 @@ macos-shell/
 │   │   ├── interactive-ssh-tool.ts  # SSH tools
 │   │   ├── session-tools.ts         # Session management
 │   │   ├── system-tools.ts          # System health
+│   │   ├── semantic-tools.ts        # Semantic search tools (6 tools)
 │   │   ├── enhanced-ssh-tool.ts     # SSH execution
-│   │   └── preflight-tools.ts       # Validation tools
+│   │   ├── preflight-tools.ts       # Validation tools
+│   │   └── cache-management-tools.ts # Cache management
+│   ├── services/                    # Service layer
+│   │   ├── embedding-service.ts     # Voyage AI embeddings
+│   │   ├── vector-storage.ts        # SQLite VSS storage
+│   │   ├── semantic-search.ts       # Semantic search core
+│   │   ├── command-indexing-service.ts
+│   │   ├── command-recommendation-service.ts
+│   │   ├── documentation-rag-service.ts
+│   │   ├── error-knowledge-base.ts
+│   │   └── output-analysis-service.ts
+│   ├── config/
+│   │   └── embedding-config.ts      # Embedding configuration
 │   ├── ai-*.ts                      # AI optimization layer (5 files)
 │   └── utils/                       # Utility modules
 │       ├── logger.ts                # Structured logging

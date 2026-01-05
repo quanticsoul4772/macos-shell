@@ -15,7 +15,7 @@ export interface EmbeddingConfig {
 }
 
 const DEFAULT_CONFIG: EmbeddingConfig = {
-  enabled: false, // Opt-in by default for privacy
+  enabled: true, // FAIL-FAST: Enabled by default, requires API key
   provider: 'voyage',
   model: 'voyage-3.5-lite', // Optimized for latency
   outputDimension: 512, // Balance between quality and performance
@@ -37,7 +37,7 @@ let currentConfig: EmbeddingConfig = { ...DEFAULT_CONFIG };
 
 /**
  * Initialize embedding configuration
- * Checks environment variables and merges with defaults
+ * FAIL-FAST: Throws if API key missing when embeddings enabled
  */
 export function initEmbeddingConfig(): EmbeddingConfig {
   const envConfig: Partial<EmbeddingConfig> = {};
@@ -45,7 +45,7 @@ export function initEmbeddingConfig(): EmbeddingConfig {
   // Check for API key in environment
   if (process.env.VOYAGE_API_KEY) {
     envConfig.apiKey = process.env.VOYAGE_API_KEY;
-    envConfig.enabled = true; // Auto-enable if key is provided
+    envConfig.enabled = true;
   }
 
   // Check for model override
@@ -61,14 +61,21 @@ export function initEmbeddingConfig(): EmbeddingConfig {
     }
   }
 
-  // Check if embeddings should be enabled
-  if (process.env.EMBEDDINGS_ENABLED === 'true') {
-    envConfig.enabled = true;
-  } else if (process.env.EMBEDDINGS_ENABLED === 'false') {
+  // Check if embeddings should be explicitly disabled
+  if (process.env.EMBEDDINGS_ENABLED === 'false') {
     envConfig.enabled = false;
   }
 
   currentConfig = { ...DEFAULT_CONFIG, ...envConfig };
+
+  // FAIL-FAST: Validate API key if embeddings enabled
+  if (currentConfig.enabled && !currentConfig.apiKey) {
+    throw new Error(
+      'FATAL: Embedding services enabled but VOYAGE_API_KEY not set. ' +
+      'Set VOYAGE_API_KEY environment variable or disable embeddings with EMBEDDINGS_ENABLED=false'
+    );
+  }
+
   return currentConfig;
 }
 

@@ -19,11 +19,14 @@ import { registerProcessTools } from './tools/process-tools.js';
 import { registerSystemTools } from './tools/system-tools.js';
 import { registerInteractiveSSHTools } from './tools/interactive-ssh-tool.js';
 import { registerPreflightTools } from './tools/preflight-tools.js';
+import { registerSemanticTools } from './tools/semantic-tools.js';
 import { startMonitoring } from './ai-monitor.js';
 import { initializeLogger, getLogger, LogLevel } from './utils/logger.js';
 import { learningPersistence } from './learning-persistence.js';
 import { initEmbeddingConfig, isEmbeddingEnabled, getEmbeddingConfig } from './config/embedding-config.js';
 import { getEmbeddingService } from './services/embedding-service.js';
+import { getErrorKnowledgeBase } from './services/error-knowledge-base.js';
+import { getDocumentationRAGService } from './services/documentation-rag-service.js';
 
 
 // Initialize logger
@@ -47,30 +50,41 @@ logger.info('Starting macOS Shell MCP Server v3.1.1');
   }
 })();
 
-// Initialize embedding services
-(async () => {
-  try {
-    initEmbeddingConfig();
-    if (isEmbeddingEnabled()) {
-      const embeddingService = getEmbeddingService();
-      if (embeddingService.isReady()) {
-        const config = getEmbeddingConfig();
-        logger.info('Embedding services initialized', {
-          provider: config.provider,
-          model: config.model,
-          dimension: config.outputDimension,
-          cacheEnabled: config.cacheEnabled,
-        });
-      } else {
-        logger.warn('Embedding service not ready - check VOYAGE_API_KEY');
-      }
-    } else {
-      logger.info('Embedding services disabled (opt-in via VOYAGE_API_KEY or EMBEDDINGS_ENABLED=true)');
-    }
-  } catch (error) {
-    logger.error('Failed to initialize embedding services', error as Error);
-  }
-})();
+// Initialize embedding services - FAIL-FAST on missing API key
+// CRITICAL: Must complete before server starts accepting requests
+async function initializeEmbeddingServices() {
+  // FAIL-FAST: initEmbeddingConfig() will throw if API key missing
+  initEmbeddingConfig();
+
+  const embeddingService = getEmbeddingService();
+  const config = getEmbeddingConfig();
+
+  logger.info('Embedding services initialized - FAIL-FAST mode enabled', {
+    provider: config.provider,
+    model: config.model,
+    dimension: config.outputDimension,
+    cacheEnabled: config.cacheEnabled,
+    failFast: true,
+  });
+
+  // Initialize error knowledge base with pre-populated errors
+  const errorKB = getErrorKnowledgeBase();
+  await errorKB.initialize();
+  const stats = errorKB.getStats();
+  logger.info('Error knowledge base initialized', {
+    errorCount: stats.errorCount,
+    categories: stats.categories,
+  });
+
+  // Initialize documentation RAG service with curated command docs
+  const docRAG = getDocumentationRAGService();
+  await docRAG.initialize();
+  const docStats = docRAG.getStats();
+  logger.info('Documentation RAG service initialized', {
+    commandCount: docStats.commandCount,
+    categories: docStats.categories,
+  });
+}
 
 // Initialize session manager
 const sessionManager = new SessionManager();
@@ -105,12 +119,25 @@ registerProcessTools(server, sessionManager);
 registerSystemTools(server, sessionManager);
 registerInteractiveSSHTools(server, sessionManager);
 registerPreflightTools(server, sessionManager);
+registerSemanticTools(server, sessionManager);
 
-// Connect to transport
-const transport = new StdioServerTransport();
-server.connect(transport).catch(error => {
-  logger.error('Error connecting to transport', error as Error);
-});
+// Initialize all async services and then connect to transport
+// CRITICAL: Must wait for initialization before accepting requests
+(async () => {
+  try {
+    // Wait for all embedding services to initialize
+    await initializeEmbeddingServices();
+    logger.info('All services initialized - server ready to accept requests');
+
+    // Now connect to transport
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    logger.info('Server connected and ready');
+  } catch (error) {
+    logger.error('FATAL: Failed to initialize services', error as Error);
+    process.exit(1);
+  }
+})();
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

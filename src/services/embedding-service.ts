@@ -49,16 +49,19 @@ export class EmbeddingService {
 
   /**
    * Initialize the Voyage AI client
+   * FAIL-FAST: Throws on initialization failure
    */
   private initialize(): void {
+    const config = getEmbeddingConfig();
+
+    if (!config.apiKey) {
+      throw new Error(
+        'FATAL: Embedding service requires VOYAGE_API_KEY. ' +
+        'API key must be set in environment variables.'
+      );
+    }
+
     try {
-      const config = getEmbeddingConfig();
-
-      if (!config.apiKey) {
-        logger.warn('Embedding service: No API key provided');
-        return;
-      }
-
       this.client = new VoyageAIClient({
         apiKey: config.apiKey,
       });
@@ -70,8 +73,8 @@ export class EmbeddingService {
         cacheEnabled: config.cacheEnabled,
       });
     } catch (error: any) {
-      logger.error('Failed to initialize embedding service', { error: error.message });
-      this.initialized = false;
+      logger.error('FATAL: Failed to initialize embedding service', { error: error.message });
+      throw new Error(`FATAL: Embedding service initialization failed: ${error.message}`);
     }
   }
 
@@ -84,6 +87,7 @@ export class EmbeddingService {
 
   /**
    * Generate embedding for a single text
+   * FAIL-FAST: Assumes service is initialized (would have thrown in constructor)
    */
   public async embed(
     text: string,
@@ -93,13 +97,9 @@ export class EmbeddingService {
       excludeCheck?: boolean;
     }
   ): Promise<EmbeddingResult> {
-    if (!this.isReady()) {
-      throw new Error('Embedding service not initialized. Set VOYAGE_API_KEY environment variable.');
-    }
-
     // Check if text should be excluded
     if (!options?.excludeCheck && shouldExcludeCommand(text)) {
-      throw new Error('Text contains sensitive patterns and was excluded from embedding');
+      throw new Error('FATAL: Text contains sensitive patterns and was excluded from embedding');
     }
 
     const config = getEmbeddingConfig();
@@ -122,14 +122,20 @@ export class EmbeddingService {
     try {
       const startTime = Date.now();
 
-      const result = await this.client!.embed([text], {
+      // Build request object according to Voyage AI API
+      const request: any = {
+        input: text, // Single string for single embed
         model: config.model,
-        inputType: options?.inputType || null,
         outputDimension: config.outputDimension,
-      });
+      };
+      if (options?.inputType) {
+        request.inputType = options.inputType;
+      }
+
+      const result = await this.client!.embed(request);
 
       const duration = Date.now() - startTime;
-      const embedding = result.embeddings[0];
+      const embedding = result.data![0].embedding!;
 
       // Cache the result
       if (config.cacheEnabled) {
@@ -159,6 +165,7 @@ export class EmbeddingService {
 
   /**
    * Generate embeddings for multiple texts (batch operation)
+   * FAIL-FAST: Assumes service is initialized (would have thrown in constructor)
    */
   public async embedBatch(
     texts: string[],
@@ -168,17 +175,8 @@ export class EmbeddingService {
       excludeCheck?: boolean;
     }
   ): Promise<BatchEmbeddingResult> {
-    if (!this.isReady()) {
-      throw new Error('Embedding service not initialized. Set VOYAGE_API_KEY environment variable.');
-    }
-
     if (texts.length === 0) {
-      return {
-        embeddings: [],
-        model: getEmbeddingConfig().model,
-        dimension: getEmbeddingConfig().outputDimension,
-        totalTokens: 0,
-      };
+      throw new Error('FATAL: embedBatch called with empty texts array');
     }
 
     // Filter out excluded texts if needed
@@ -187,7 +185,7 @@ export class EmbeddingService {
       : texts.filter(text => !shouldExcludeCommand(text));
 
     if (filteredTexts.length === 0) {
-      throw new Error('All texts were excluded due to sensitive patterns');
+      throw new Error('FATAL: All texts were excluded due to sensitive patterns');
     }
 
     const config = getEmbeddingConfig();
@@ -225,17 +223,23 @@ export class EmbeddingService {
       try {
         const startTime = Date.now();
 
-        const result = await this.client!.embed(uncachedTexts, {
+        // Build request object according to Voyage AI API
+        const request: any = {
+          input: uncachedTexts, // Array of strings for batch embed
           model: config.model,
-          inputType: options?.inputType || null,
           outputDimension: config.outputDimension,
-        });
+        };
+        if (options?.inputType) {
+          request.inputType = options.inputType;
+        }
+
+        const result = await this.client!.embed(request);
 
         const duration = Date.now() - startTime;
 
         // Store results and cache
         for (let i = 0; i < uncachedTexts.length; i++) {
-          const embedding = result.embeddings[i];
+          const embedding = result.data![i].embedding!;
           const originalIndex = uncachedIndices[i];
           embeddings[originalIndex] = embedding;
 
@@ -248,14 +252,14 @@ export class EmbeddingService {
         logger.info('Batch embeddings generated', {
           count: uncachedTexts.length,
           duration,
-          tokensUsed: result.totalTokens,
+          tokensUsed: result.usage?.totalTokens || 0,
         });
 
         return {
           embeddings,
           model: config.model,
           dimension: config.outputDimension,
-          totalTokens: result.totalTokens,
+          totalTokens: result.usage?.totalTokens || 0,
         };
       } catch (error: any) {
         logger.error('Failed to generate batch embeddings', {
