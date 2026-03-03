@@ -54,10 +54,15 @@ logger.info('Starting macOS Shell MCP Server v3.1.1');
 // CRITICAL: Must complete before server starts accepting requests
 async function initializeEmbeddingServices() {
   // FAIL-FAST: initEmbeddingConfig() will throw if API key missing
-  initEmbeddingConfig();
+  const config = initEmbeddingConfig();
+
+  // Skip initialization if embeddings are disabled
+  if (!config.enabled) {
+    logger.info('Embedding services disabled via configuration');
+    return;
+  }
 
   const embeddingService = getEmbeddingService();
-  const config = getEmbeddingConfig();
 
   logger.info('Embedding services initialized - FAIL-FAST mode enabled', {
     provider: config.provider,
