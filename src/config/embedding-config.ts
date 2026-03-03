@@ -15,7 +15,7 @@ export interface EmbeddingConfig {
 }
 
 const DEFAULT_CONFIG: EmbeddingConfig = {
-  enabled: true, // FAIL-FAST: Enabled by default, requires API key
+  enabled: false, // Enabled when VOYAGE_API_KEY is present
   provider: 'voyage',
   model: 'voyage-3.5-lite', // Optimized for latency
   outputDimension: 512, // Balance between quality and performance
@@ -114,5 +114,3 @@ export function isEmbeddingEnabled(): boolean {
   return currentConfig.enabled && !!currentConfig.apiKey;
 }
 
-// Initialize on module load
-initEmbeddingConfig();

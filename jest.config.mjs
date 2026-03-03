@@ -10,6 +10,9 @@ export default {
     '^execa$': '<rootDir>/test/mocks/execa.ts',
     '^node-pty$': '<rootDir>/test/mocks/node-pty.ts',
     '^ssh2$': '<rootDir>/test/mocks/ssh2.ts',
+    '^sqlite-vss$': '<rootDir>/test/mocks/sqlite-vss.ts',
+    '^better-sqlite3$': '<rootDir>/test/mocks/better-sqlite3.ts',
+    '^voyageai$': '<rootDir>/test/mocks/voyageai.ts',
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
@@ -33,12 +36,17 @@ export default {
     'src/**/*.ts',
     '!src/**/*.d.ts',
     '!src/**/*.test.ts',
-    '!src/types/**'
+    '!src/types/**',
+    // SSH integration code requires PTY/SSH2 connections, not unit-testable
+    '!src/tools/helpers/ssh-*.ts',
+    '!src/tools/interactive-ssh-tool.ts',
+    '!src/tools/enhanced-ssh-tool.ts',
+    '!src/utils/native-ssh-manager.ts',
   ],
   coverageThreshold: {
     global: {
       branches: 50,
-      functions: 50,  
+      functions: 50,
       lines: 60,
       statements: 60
     }

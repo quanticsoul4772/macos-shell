@@ -59,7 +59,7 @@ npm run test:debug
 npm run test:check
 ```
 
-**Test Coverage Thresholds**: The project enforces minimum coverage of 60% lines/statements and 50% functions/branches. Current coverage is ~60%.
+**Test Coverage Thresholds**: The project enforces minimum coverage of 60% lines/statements and 50% functions/branches. Current coverage is ~57%.
 
 ## Architecture Overview
 

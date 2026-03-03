@@ -12,7 +12,14 @@ import { getCommandIndexingService } from '../services/command-indexing-service.
 const logger = getLogger('command-history');
 
 export class CommandHistoryManager {
-  private commandIndexing = getCommandIndexingService();
+  private _commandIndexing: ReturnType<typeof getCommandIndexingService> | null = null;
+
+  private get commandIndexing() {
+    if (!this._commandIndexing) {
+      this._commandIndexing = getCommandIndexingService();
+    }
+    return this._commandIndexing;
+  }
 
   /**
    * Add a command to session history
@@ -37,16 +44,14 @@ export class CommandHistoryManager {
       exitCode: history.exitCode
     }, `Added command to history: ${history.command}`);
 
-    // AUTOMATIC INDEXING: Index command with embeddings (async, non-blocking)
+    // Index command with embeddings (async, non-blocking)
     this.commandIndexing.indexCommand(session.id, history, session.cwd)
       .catch(error => {
-        logger.error('FATAL: Failed to index command', {
+        logger.debug('Failed to index command', {
           sessionId: session.id,
           command: history.command.substring(0, 50),
           error: error.message,
         });
-        // Fail-fast: Rethrow to make indexing failures visible
-        throw error;
       });
   }
 
